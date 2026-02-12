@@ -1,7 +1,8 @@
 import { createSignal, createMemo, Show, createEffect, For, JSX } from 'solid-js';
-import { AlertCircle, CheckCircle2, Copy, Check } from 'lucide-solid';
+import { AlertCircle, CheckCircle2 } from 'lucide-solid';
 import { calculateMannWhitneyU, format, parseNumberInput, ParsedNumberInput } from '~/lib/stats';
 import { getStoredValue, setStoredValue } from '~/lib/storage';
+import { StatResult } from './StatResult';
 
 const MannWhitneyUCalculator = () => {
   const [raw1, setRaw1] = createSignal(getStoredValue('stats.mannwhitney.sample1.raw', '12, 15, 11, 18, 14'));
@@ -54,11 +55,11 @@ const MannWhitneyUCalculator = () => {
               </div>
             }>
               <div class="space-y-4">
-                <ResultItem label={<span>U score</span>} value={format(results()!.uA)} />
+                <StatResult label={<span>U score</span>} value={format(results()!.uA)} />
                 <div class="border-t border-dotted border-[#E6E4DD] my-2"></div>
-                <ResultItem label="z-score" value={format(results()!.z)} />
+                <StatResult label="z-score" value={format(results()!.z)} />
                 <div class="border-t border-dotted border-[#E6E4DD] my-2"></div>
-                <ResultItem label="Two-tailed P value" value={results()!.p < 0.0001 ? '< 0.0001' : format(results()!.p)} />
+                <StatResult label="Two-tailed P value" value={results()!.p < 0.0001 ? '< 0.0001' : format(results()!.p)} />
               </div>
             </Show>
           </div>
@@ -146,40 +147,6 @@ const RawSampleInput = (props: { title: string, value: string, onInput: (v: stri
         <div class="text-[#8A847A] font-serif">
           {summaryText()}
         </div>
-      </div>
-    </div>
-  );
-};
-
-const ResultItem = (props: { label: JSX.Element | string, value: string | number }) => {
-  const [copied, setCopied] = createSignal(false);
-
-  const handleCopy = () => {
-    const text = String(props.value).replace(/,/g, '');
-    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      }).catch(err => {
-        console.error('Failed to copy:', err);
-      });
-    }
-  };
-
-  return (
-    <div class="flex items-center group">
-      <button 
-        onClick={handleCopy}
-        class="mr-2 p-1 rounded hover:bg-[#F0EFEC] transition-colors text-[#8A847A] hover:text-[#2D2D2D] focus:outline-none"
-        title="Copy value"
-      >
-        <Show when={copied()} fallback={<Copy size={14} class="opacity-0 group-hover:opacity-100 transition-opacity" />}>
-          <Check size={14} class="text-[#5A7258]" />
-        </Show>
-      </button>
-      <div class="flex-1 flex items-center justify-between">
-        <span class="font-serif text-[#6B6255] text-sm">{props.label}</span>
-        <span class="font-sans font-medium text-[#2D2D2D] text-sm">{props.value}</span>
       </div>
     </div>
   );

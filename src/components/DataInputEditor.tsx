@@ -1,7 +1,8 @@
 import { createSignal, createMemo, For, Show, createEffect } from 'solid-js';
-import { AlertCircle, CheckCircle2, Copy, Check } from 'lucide-solid';
+import { AlertCircle, CheckCircle2 } from 'lucide-solid';
 import { calculateStats, format, parseNumberInput } from '~/lib/stats';
 import { getStoredValue, setStoredValue } from '~/lib/storage';
+import { StatResult } from './StatResult';
 
 const DataInputEditor = () => {
   const [value, setValue] = createSignal(getStoredValue('stats.general.data', '10.5, 20\n-5.2  42\n100'));
@@ -111,55 +112,21 @@ const DataInputEditor = () => {
       {/* Right Side: Results */}
       <div class="bg-white rounded-2xl shadow-sm border border-[#E6E4DD] p-6 flex flex-col justify-center">
         <div class="space-y-3.5">
-          <StatItem label={isPopulation() ? "Population size" : "Sample size"} value={stats().count} />
-          <StatItem label={isPopulation() ? "Mean (μ)" : "Mean (x̄)"} value={format(stats().mean)} />
-          <StatItem label="Median" value={format(stats().median)} />
-          <StatItem label="Mode" value={stats().mode} />
-          <StatItem label="Lowest value" value={format(stats().min)} />
-          <StatItem label="Highest value" value={format(stats().max)} />
-          <StatItem label="Range" value={format(stats().range)} />
-          <StatItem label="Interquartile range" value={format(stats().iqr)} />
-          <StatItem label="First quartile" value={format(stats().q1)} />
-          <StatItem label="Third quartile" value={format(stats().q3)} />
-          <StatItem label={isPopulation() ? "Variance (σ²)" : "Variance (s²)"} value={format(stats().variance)} />
-          <StatItem label={isPopulation() ? "Std dev (σ)" : "Std dev (s)"} value={format(stats().stdDev)} />
-          <StatItem label="Quartile deviation" value={format(stats().qd)} />
-          <StatItem label="Mean absolute deviation" value={format(stats().mad)} />
+          <StatResult label={isPopulation() ? "Population size" : "Sample size"} value={stats().count} showBorder />
+          <StatResult label={isPopulation() ? "Mean (μ)" : "Mean (x̄)"} value={format(stats().mean)} showBorder />
+          <StatResult label="Median" value={format(stats().median)} showBorder />
+          <StatResult label="Mode" value={stats().mode} showBorder />
+          <StatResult label="Lowest value" value={format(stats().min)} showBorder />
+          <StatResult label="Highest value" value={format(stats().max)} showBorder />
+          <StatResult label="Range" value={format(stats().range)} showBorder />
+          <StatResult label="Interquartile range" value={format(stats().iqr)} showBorder />
+          <StatResult label="First quartile" value={format(stats().q1)} showBorder />
+          <StatResult label="Third quartile" value={format(stats().q3)} showBorder />
+          <StatResult label={isPopulation() ? "Variance (σ²)" : "Variance (s²)"} value={format(stats().variance)} showBorder />
+          <StatResult label={isPopulation() ? "Std dev (σ)" : "Std dev (s)"} value={format(stats().stdDev)} showBorder />
+          <StatResult label="Quartile deviation" value={format(stats().qd)} showBorder />
+          <StatResult label="Mean absolute deviation" value={format(stats().mad)} showBorder />
         </div>
-      </div>
-    </div>
-  );
-};
-
-const StatItem = (props: { label: string, value: string | number }) => {
-  const [copied, setCopied] = createSignal(false);
-
-  const handleCopy = () => {
-    const text = String(props.value).replace(/,/g, '');
-    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      }).catch(err => {
-        console.error('Failed to copy:', err);
-      });
-    }
-  };
-
-  return (
-    <div class="flex items-center group border-b border-dotted border-[#E6E4DD] pb-1 last:border-0">
-      <button 
-        onClick={handleCopy}
-        class="mr-2 p-1 rounded hover:bg-[#F0EFEC] transition-colors text-[#8A847A] hover:text-[#2D2D2D] focus:outline-none"
-        title="Copy value"
-      >
-        <Show when={copied()} fallback={<Copy size={14} class="opacity-0 group-hover:opacity-100 transition-opacity" />}>
-          <Check size={14} class="text-[#5A7258]" />
-        </Show>
-      </button>
-      <div class="flex-1 flex items-center justify-between">
-        <span class="font-serif text-[#6B6255] text-sm">{props.label}</span>
-        <span class="font-sans font-medium text-[#2D2D2D] text-sm">{props.value}</span>
       </div>
     </div>
   );

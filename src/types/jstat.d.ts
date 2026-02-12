@@ -4,8 +4,13 @@ declare module 'jstat' {
     inv(probability: number, df: number): number;
   }
 
+  interface CentralF {
+    cdf(value: number, df1: number, df2: number): number;
+  }
+
   interface JStat {
     studentt: StudentT;
+    centralF: CentralF;
   }
 
   const jStat: JStat;

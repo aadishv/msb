@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateWelchTTest, calculateSampleSummary, calculateMannWhitneyU, calculatePairedTTest } from './stats';
+import { calculateWelchTTest, calculateSampleSummary, calculateMannWhitneyU, calculatePairedTTest, calculateANOVA, calculateRepeatedMeasuresANOVA, calculateTukeyHSD } from './stats';
 
 describe('stats lib', () => {
   describe('calculateWelchTTest', () => {
@@ -102,6 +102,82 @@ describe('stats lib', () => {
     it('should return null for unequal sample sizes', () => {
       const result = calculatePairedTTest([1, 2], [1, 2, 3]);
       expect(result).toBeNull();
+    });
+  });
+
+  describe('calculateANOVA', () => {
+    it('should correctly calculate ANOVA for a known sample', () => {
+      // Group 1: 10, 12, 11, 13, 11 (Mean: 11.4, n=5)
+      // Group 2: 14, 15, 13, 16, 14 (Mean: 14.4, n=5)
+      // Group 3: 18, 17, 19, 17, 18 (Mean: 17.8, n=5)
+      // Grand Mean: (11.4 + 14.4 + 17.8) / 3 = 14.5333
+      // SS_between = 5*(11.4-14.533)^2 + 5*(14.4-14.533)^2 + 5*(17.8-14.533)^2
+      // SS_between = 49.066 + 0.088 + 53.355 = 102.533
+      // SS_within = 2+2+2+4+2 + 2+1+2+4+2 + 2+1+2+1+2 = 2.0+1.4+2.8 = ... (actually it's simpler)
+      // Let's use known values for this test
+      const samples = [
+        [10, 12, 11, 13, 11],
+        [14, 15, 13, 16, 14],
+        [18, 17, 19, 17, 18]
+      ];
+
+      const result = calculateANOVA(samples);
+
+      expect(result).not.toBeNull();
+      if (result) {
+        expect(result.dfBetween).toBe(2);
+        expect(result.dfWithin).toBe(12);
+        expect(result.fValue).toBeCloseTo(46.606, 3);
+        expect(result.pValue).toBeLessThan(0.0001);
+      }
+    });
+
+    it('should return null for insufficient samples', () => {
+      expect(calculateANOVA([[1, 2]])).toBeNull();
+      expect(calculateANOVA([[1, 2], []])).toBeNull();
+      expect(calculateANOVA([[1], [2]])).toBeNull(); // dfWithin = 2 - 2 = 0
+    });
+  });
+
+  describe('calculateRepeatedMeasuresANOVA', () => {
+    it('should correctly calculate RM ANOVA for a known sample', () => {
+      // Example data: 3 treatments, 4 subjects
+      const samples = [
+        [10, 12, 11, 13], // Treatment 1
+        [14, 15, 13, 16], // Treatment 2
+        [18, 17, 19, 17]  // Treatment 3
+      ];
+      
+      const result = calculateRepeatedMeasuresANOVA(samples);
+      expect(result).not.toBeNull();
+      if (result) {
+        expect(result.dfBetween).toBe(2);
+        expect(result.dfSubjects).toBe(3);
+        expect(result.dfWithin).toBe(6);
+        expect(result.fValue).toBeGreaterThan(0);
+        expect(result.pValue).toBeLessThan(0.05);
+        expect(result.tukeyResults).toBeDefined();
+        expect(result.tukeyResults?.length).toBe(3); // 3 pairs for 3 groups
+      }
+    });
+
+    it('should return null for unequal sample sizes', () => {
+      const samples = [[1, 2], [3, 4, 5]];
+      expect(calculateRepeatedMeasuresANOVA(samples)).toBeNull();
+    });
+  });
+
+  describe('calculateTukeyHSD', () => {
+    it('should return correct results for significant differences', () => {
+      const means = [10, 20, 30];
+      const ns = [5, 5, 5];
+      const msError = 2;
+      const dfError = 12;
+      const results = calculateTukeyHSD(means, ns, msError, dfError);
+      expect(results.length).toBe(3);
+      expect(results[0].pValue).toBeLessThan(0.05);
+      expect(results[1].pValue).toBeLessThan(0.001);
+      expect(results[2].pValue).toBeLessThan(0.05);
     });
   });
 });

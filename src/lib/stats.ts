@@ -45,6 +45,13 @@ export function format(n: number | null) {
   return n.toLocaleString(undefined, { maximumFractionDigits: 4 });
 }
 
+export function formatTukeyP(p: number): string {
+  if (p >= 0.05) return 'insignificant';
+  if (p < 0.001) return '< 0.001';
+  if (p < 0.01) return '< 0.01';
+  return '< 0.05';
+}
+
 export function calculateWelchTTest(
   m1: number, s1: number, n1: number,
   m2: number, s2: number, n2: number
@@ -246,4 +253,175 @@ export function calculateStats(numbers: number[], isPopulation: boolean) {
     qd,
     mad
   };
+}
+
+export function calculateANOVA(samples: number[][]): AnovaResult | null {
+  const k = samples.length;
+  if (k < 2) return null;
+
+  const groupCounts = samples.map(s => s.length);
+  const totalN = groupCounts.reduce((a, b) => a + b, 0);
+  
+  // Need at least one value in each group and totalN > k
+  if (groupCounts.some(n => n === 0) || totalN <= k) return null;
+
+  const allNumbers = samples.flat();
+  const grandMean = allNumbers.reduce((a, b) => a + b, 0) / totalN;
+
+  const groupMeans = samples.map(s => s.reduce((a, b) => a + b, 0) / s.length);
+
+  // Between-group sum of squares (SSTR)
+  let ssBetween = 0;
+  for (let i = 0; i < k; i++) {
+    ssBetween += groupCounts[i] * Math.pow(groupMeans[i] - grandMean, 2);
+  }
+
+  // Within-group sum of squares (SSE)
+  let ssWithin = 0;
+  for (let i = 0; i < k; i++) {
+    for (let j = 0; j < samples[i].length; j++) {
+      ssWithin += Math.pow(samples[i][j] - groupMeans[i], 2);
+    }
+  }
+
+  const dfBetween = k - 1;
+  const dfWithin = totalN - k;
+
+  const msBetween = ssBetween / dfBetween;
+  const msWithin = ssWithin / dfWithin;
+
+  const fValue = msWithin === 0 ? (msBetween === 0 ? 0 : Infinity) : msBetween / msWithin;
+
+  const pValue = 1 - jStat.centralF.cdf(fValue, dfBetween, dfWithin);
+
+  const result: AnovaResult = {
+    fValue,
+    dfBetween,
+    dfWithin,
+    pValue,
+    ssBetween,
+    ssWithin,
+    msBetween,
+    msWithin
+  };
+
+  if (pValue < 0.05) {
+    result.tukeyResults = calculateTukeyHSD(groupMeans, groupCounts, msWithin, dfWithin);
+  }
+
+  return result;
+}
+
+export interface AnovaResult {
+  fValue: number;
+  dfBetween: number;
+  dfWithin: number;
+  pValue: number;
+  ssBetween: number;
+  msBetween: number;
+  ssWithin?: number;
+  msWithin?: number;
+  ssSubjects?: number;
+  dfSubjects?: number;
+  ssError?: number;
+  msError?: number;
+  tukeyResults?: TukeyResult[];
+}
+
+export interface TukeyResult {
+  groupA: number;
+  groupB: number;
+  difference: number;
+  pValue: number;
+}
+
+export function calculateTukeyHSD(
+  means: number[],
+  ns: number[],
+  msError: number,
+  dfError: number
+): TukeyResult[] {
+  const k = means.length;
+  const results: TukeyResult[] = [];
+
+  for (let i = 0; i < k; i++) {
+    for (let j = i + 1; j < k; j++) {
+      const diff = Math.abs(means[i] - means[j]);
+      // Tukey-Kramer adjustment for unequal sample sizes: SE = sqrt(MS_error / 2 * (1/ni + 1/nj))
+      const se = Math.sqrt((msError / 2) * (1 / ns[i] + 1 / ns[j]));
+      const q = diff / se;
+      
+      // jStat.qtest(q, n, k) uses n-k as degrees of freedom. 
+      // To use dfError, we pass n = dfError + k.
+      const pValue = jStat.qtest(q, dfError + k, k);
+      results.push({
+        groupA: i,
+        groupB: j,
+        difference: means[i] - means[j],
+        pValue
+      });
+    }
+  }
+  return results;
+}
+
+export function calculateRepeatedMeasuresANOVA(samples: number[][]): AnovaResult | null {
+  const k = samples.length;
+  if (k < 2) return null;
+
+  const n = samples[0].length;
+  if (n < 2) return null;
+
+  if (samples.some(s => s.length !== n)) return null;
+
+  const totalN = k * n;
+  const allNumbers = samples.flat();
+  const grandMean = allNumbers.reduce((a, b) => a + b, 0) / totalN;
+
+  const ssTotal = allNumbers.reduce((acc, val) => acc + Math.pow(val - grandMean, 2), 0);
+
+  const groupMeans = samples.map(s => s.reduce((a, b) => a + b, 0) / n);
+  const ssBetween = n * groupMeans.reduce((acc, mean) => acc + Math.pow(mean - grandMean, 2), 0);
+
+  const subjectMeans = [];
+  for (let i = 0; i < n; i++) {
+    let sum = 0;
+    for (let j = 0; j < k; j++) {
+      sum += samples[j][i];
+    }
+    subjectMeans.push(sum / k);
+  }
+  const ssSubjects = k * subjectMeans.reduce((acc, mean) => acc + Math.pow(mean - grandMean, 2), 0);
+
+  const ssError = ssTotal - ssBetween - ssSubjects;
+
+  const dfBetween = k - 1;
+  const dfSubjects = n - 1;
+  const dfError = (k - 1) * (n - 1);
+
+  const msBetween = ssBetween / dfBetween;
+  const msError = ssError / dfError;
+
+  const fValue = msError === 0 ? (msBetween === 0 ? 0 : Infinity) : msBetween / msError;
+  const pValue = 1 - jStat.centralF.cdf(fValue, dfBetween, dfError);
+
+  const result: AnovaResult = {
+    fValue,
+    dfBetween,
+    dfSubjects,
+    dfWithin: dfError, // Use dfWithin consistently for display if possible
+    pValue,
+    ssBetween,
+    ssSubjects,
+    ssError,
+    msBetween,
+    msError
+  };
+
+  if (pValue < 0.05) {
+    const groupCounts = samples.map(s => s.length);
+    result.tukeyResults = calculateTukeyHSD(groupMeans, groupCounts, msError, dfError);
+  }
+
+  return result;
 }
