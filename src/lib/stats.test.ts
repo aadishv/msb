@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateWelchTTest, calculateSampleSummary } from './stats';
+import { calculateWelchTTest, calculateSampleSummary, calculateMannWhitneyU } from './stats';
 
 describe('stats lib', () => {
   describe('calculateWelchTTest', () => {
@@ -38,6 +38,40 @@ describe('stats lib', () => {
 
     it('should return null for empty array', () => {
       expect(calculateSampleSummary([])).toBeNull();
+    });
+  });
+
+  describe('calculateMannWhitneyU', () => {
+    it('should correctly calculate Mann-Whitney U for a known sample', () => {
+      const sampleA = [12, 15, 11, 18, 14];
+      const sampleB = [9, 13, 10, 12, 8];
+
+      const result = calculateMannWhitneyU(sampleA, sampleB);
+
+      expect(result).not.toBeNull();
+      if (result) {
+        expect(result.uA).toBe(3.5);
+        expect(result.uB).toBe(21.5);
+        expect(result.z).toBeCloseTo(1.78, 2);
+        expect(result.p).toBeCloseTo(0.075, 3);
+      }
+    });
+
+    it('should handle no ties correctly', () => {
+      const sampleA = [1, 3, 5];
+      const sampleB = [2, 4, 6];
+
+      const result = calculateMannWhitneyU(sampleA, sampleB);
+
+      expect(result).not.toBeNull();
+      if (result) {
+        expect(result.uA).toBe(3);
+        expect(result.uB).toBe(6);
+        // uSmallest = 3, meanU = 4.5
+        // sigmaU = sqrt(3*3*7/12) = 2.2913
+        // z = (|3 - 4.5| - 0.5) / 2.2913 = 1 / 2.2913 = 0.4364
+        expect(result.z).toBeCloseTo(0.4364, 4);
+      }
     });
   });
 });

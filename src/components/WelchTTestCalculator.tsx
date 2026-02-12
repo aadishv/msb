@@ -1,4 +1,4 @@
-import { createSignal, createMemo, Show, createEffect, For } from 'solid-js';
+import { createSignal, createMemo, Show, createEffect, For, JSX } from 'solid-js';
 import { AlertCircle, CheckCircle2 } from 'lucide-solid';
 import { calculateWelchTTest, format, parseNumberInput, calculateSampleSummary, ParsedNumberInput } from '~/lib/stats';
 import { getStoredValue, setStoredValue } from '~/lib/storage';
@@ -83,7 +83,7 @@ const WelchTTestCalculator = () => {
           {/* Inputs */}
           <div class="space-y-6">
             <Show when={mode() === 'summary'}>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <TwoSampleContainer>
                 <SampleInputCard 
                   title="Sample 1" 
                   mean={m1()} setMean={setM1} 
@@ -96,10 +96,10 @@ const WelchTTestCalculator = () => {
                   sd={s2()} setSd={setS2} 
                   n={n2()} setN={setN2} 
                 />
-              </div>
+              </TwoSampleContainer>
             </Show>
             <Show when={mode() === 'raw'}>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <TwoSampleContainer>
                 <RawSampleInput
                   title="Sample 1"
                   value={raw1()}
@@ -114,7 +114,7 @@ const WelchTTestCalculator = () => {
                   parsed={parsed2()}
                   summary={summary2()}
                 />
-              </div>
+              </TwoSampleContainer>
             </Show>
           </div>
 
@@ -152,8 +152,14 @@ const WelchTTestCalculator = () => {
   );
 };
 
+const TwoSampleContainer = (props: { children: JSX.Element }) => (
+  <div class="grid grid-cols-1 md:grid-cols-2 bg-white rounded-2xl shadow-sm border border-[#E6E4DD] divide-y md:divide-y-0 md:divide-x divide-[#E6E4DD] overflow-hidden">
+    {props.children}
+  </div>
+);
+
 const SampleInputCard = (props: { title: string, mean: string, setMean: (v: string) => void, sd: string, setSd: (v: string) => void, n: string, setN: (v: string) => void }) => (
-  <div class="bg-white rounded-2xl shadow-sm border border-[#E6E4DD] p-6 space-y-4">
+  <div class="p-6 space-y-4">
     <h3 class="font-serif text-[#2D2D2D] font-medium border-b border-[#F0EFEC] pb-2">{props.title}</h3>
     <div class="space-y-3">
       <InputField label="Mean (x̄)" value={props.mean} onInput={props.setMean} />
@@ -182,7 +188,7 @@ const RawSampleInput = (props: { title: string, value: string, onInput: (v: stri
   };
 
   return (
-    <div class="bg-white rounded-2xl shadow-sm border border-[#E6E4DD] p-6 flex flex-col min-h-[360px]">
+    <div class="p-6 flex flex-col min-h-[360px]">
       <h3 class="font-serif text-[#2D2D2D] font-medium border-b border-[#F0EFEC] pb-2">{props.title}</h3>
       <div class="relative w-full flex-1 font-mono text-base leading-relaxed mt-4">
         <div 

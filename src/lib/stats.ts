@@ -75,6 +75,71 @@ export function calculateWelchTTest(
   return { t, df, p, ciLow, ciHigh };
 }
 
+export function calculateMannWhitneyU(sampleA: number[], sampleB: number[]) {
+  const nA = sampleA.length;
+  const nB = sampleB.length;
+  if (nA === 0 || nB === 0) return null;
+
+  const combined = [
+    ...sampleA.map(v => ({ value: v, group: 'A' as const })),
+    ...sampleB.map(v => ({ value: v, group: 'B' as const }))
+  ].sort((a, b) => a.value - b.value);
+
+  const ranks = new Array(combined.length);
+  let i = 0;
+  while (i < combined.length) {
+    let j = i;
+    while (j < combined.length && combined[j].value === combined[i].value) {
+      j++;
+    }
+    const rank = (i + 1 + j) / 2;
+    for (let k = i; k < j; k++) {
+      ranks[k] = rank;
+    }
+    i = j;
+  }
+
+  let sumRanksA = 0;
+  for (let k = 0; k < combined.length; k++) {
+    if (combined[k].group === 'A') {
+      sumRanksA += ranks[k];
+    }
+  }
+
+  const uA_calc = sumRanksA - (nA * (nA + 1)) / 2;
+  const uB_calc = nA * nB - uA_calc;
+  const uSmallest = Math.min(uA_calc, uB_calc);
+
+  const meanU = (nA * nB) / 2;
+  const N = nA + nB;
+
+  // Tie correction
+  const tieCounts = new Map<number, number>();
+  combined.forEach(item => {
+    tieCounts.set(item.value, (tieCounts.get(item.value) || 0) + 1);
+  });
+
+  let tieSum = 0;
+  for (const count of tieCounts.values()) {
+    if (count > 1) {
+      tieSum += Math.pow(count, 3) - count;
+    }
+  }
+
+  const sigmaU = Math.sqrt((nA * nB * (N + 1)) / 12);
+  let sigmaCorr = sigmaU;
+  if (tieSum > 0 && N > 1) {
+    sigmaCorr = Math.sqrt(
+      (nA * nB / (N * (N - 1))) * ((Math.pow(N, 3) - N) / 12 - tieSum / 12)
+    );
+  }
+
+  const z = sigmaCorr === 0 ? 0 : (Math.abs(uSmallest - meanU) - 0.5) / sigmaCorr;
+  const p = 2 * (1 - jStat.normal.cdf(Math.abs(z), 0, 1));
+
+  return { uA: uSmallest, uB: Math.max(uA_calc, uB_calc), z, p };
+}
+
 export function calculateStats(numbers: number[], isPopulation: boolean) {
   if (numbers.length === 0) {
     return { count: 0, mean: 0, median: 0, mode: '-', min: 0, max: 0, range: 0, q1: 0, q3: 0, iqr: 0, variance: 0, stdDev: 0, qd: 0, mad: 0 };
