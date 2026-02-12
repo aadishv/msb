@@ -133,15 +133,10 @@ const WelchTTestCalculator = () => {
                 <div class="border-t border-dotted border-[#E6E4DD] my-2"></div>
                 <ResultItem label="Two-tailed P value" value={results()!.p < 0.0001 ? '< 0.0001' : format(results()!.p)} />
                 <div class="border-t border-dotted border-[#E6E4DD] my-2"></div>
-                <div class="flex flex-col">
-                  <span class="font-serif text-[#6B6255] text-sm">95% Confidence Interval</span>
-                  <span class="font-sans font-medium text-[#2D2D2D] text-lg mt-1">
-                    [{format(results()!.ciLow)}, {format(results()!.ciHigh)}]
-                  </span>
-                  <span class="text-xs text-[#8A847A] font-serif mt-1 italic">
-                    Difference in population means
-                  </span>
-                </div>
+                <ResultItem 
+                  label="95% Confidence Interval" 
+                  value={`[${format(results()!.ciLow)}, ${format(results()!.ciHigh)}]`} 
+                />
               </div>
             </Show>
           </div>

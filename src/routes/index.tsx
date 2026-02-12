@@ -77,7 +77,7 @@ export default function Home() {
             Welch's t-test
           </h2>
           <p class="text-[#6B6255] text-base md:text-lg font-serif">
-            Compare the means of two populations with unequal variances.
+            Compare the means of two samples with unequal variances.
           </p>
         </div>
         <WelchTTestCalculator />
