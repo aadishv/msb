@@ -140,6 +140,38 @@ export function calculateMannWhitneyU(sampleA: number[], sampleB: number[]) {
   return { uA: uSmallest, uB: Math.max(uA_calc, uB_calc), z, p };
 }
 
+export function calculatePairedTTest(sampleA: number[], sampleB: number[]) {
+  const n = sampleA.length;
+  if (n === 0 || n !== sampleB.length) return null;
+
+  const differences = sampleA.map((val, i) => val - sampleB[i]);
+  const sumDiff = differences.reduce((acc, val) => acc + val, 0);
+  const meanDiff = sumDiff / n;
+
+  const sumSquaredDiff = differences.reduce((acc, val) => acc + Math.pow(val - meanDiff, 2), 0);
+  const varianceDiff = sumSquaredDiff / (n - 1);
+  const sdDiff = Math.sqrt(varianceDiff);
+
+  const se = sdDiff / Math.sqrt(n);
+  const t = se === 0 ? 0 : meanDiff / se;
+  const df = n - 1;
+
+  const cdf = isFinite(t) && isFinite(df) && df > 0
+    ? jStat.studentt.cdf(Math.abs(t), df)
+    : NaN;
+  const p = isNaN(cdf) ? NaN : Math.max(0, Math.min(1, 2 * (1 - cdf)));
+
+  const tCritical = isFinite(df) && df > 0
+    ? jStat.studentt.inv(0.975, df)
+    : NaN;
+
+  const marginOfError = tCritical * se;
+  const ciLow = meanDiff - marginOfError;
+  const ciHigh = meanDiff + marginOfError;
+
+  return { t, df, p, ciLow, ciHigh, meanDiff, sdDiff, n };
+}
+
 export function calculateStats(numbers: number[], isPopulation: boolean) {
   if (numbers.length === 0) {
     return { count: 0, mean: 0, median: 0, mode: '-', min: 0, max: 0, range: 0, q1: 0, q3: 0, iqr: 0, variance: 0, stdDev: 0, qd: 0, mad: 0 };

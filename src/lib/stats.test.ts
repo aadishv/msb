@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateWelchTTest, calculateSampleSummary, calculateMannWhitneyU } from './stats';
+import { calculateWelchTTest, calculateSampleSummary, calculateMannWhitneyU, calculatePairedTTest } from './stats';
 
 describe('stats lib', () => {
   describe('calculateWelchTTest', () => {
@@ -72,6 +72,36 @@ describe('stats lib', () => {
         // z = (|3 - 4.5| - 0.5) / 2.2913 = 1 / 2.2913 = 0.4364
         expect(result.z).toBeCloseTo(0.4364, 4);
       }
+    });
+  });
+
+  describe('calculatePairedTTest', () => {
+    it('should correctly calculate paired t-test for a known sample', () => {
+      // Sample A: [10, 12, 15, 18, 20]
+      // Sample B: [8, 11, 14, 17, 19]
+      // Differences: [2, 1, 1, 1, 1]
+      // Mean difference: 1.2
+      // SD of differences: 0.4472
+      // SE: 0.4472 / sqrt(5) = 0.2
+      // t: 1.2 / 0.2 = 6
+      const sampleA = [10, 12, 15, 18, 20];
+      const sampleB = [8, 11, 14, 17, 19];
+
+      const result = calculatePairedTTest(sampleA, sampleB);
+
+      expect(result).not.toBeNull();
+      if (result) {
+        expect(result.n).toBe(5);
+        expect(result.meanDiff).toBeCloseTo(1.2, 4);
+        expect(result.t).toBeCloseTo(6.0, 4);
+        expect(result.df).toBe(4);
+        expect(result.p).toBeCloseTo(0.0039, 4);
+      }
+    });
+
+    it('should return null for unequal sample sizes', () => {
+      const result = calculatePairedTTest([1, 2], [1, 2, 3]);
+      expect(result).toBeNull();
     });
   });
 });

@@ -1,5 +1,5 @@
 import { createSignal, createMemo, Show, createEffect, For, JSX } from 'solid-js';
-import { AlertCircle, CheckCircle2 } from 'lucide-solid';
+import { AlertCircle, CheckCircle2, Copy, Check } from 'lucide-solid';
 import { calculateWelchTTest, format, parseNumberInput, calculateSampleSummary, ParsedNumberInput } from '~/lib/stats';
 import { getStoredValue, setStoredValue } from '~/lib/storage';
 
@@ -247,7 +247,7 @@ const RawSampleInput = (props: { title: string, value: string, onInput: (v: stri
 
 const InputField = (props: { label: string, value: string, onInput: (v: string) => void }) => (
   <div class="flex flex-col space-y-1">
-    <label class="text-xs font-bold text-[#8A847A] uppercase tracking-wider font-sans">{props.label}</label>
+    <label class="text-xs font-bold text-[#8A847A] tracking-wider font-sans">{props.label}</label>
     <input 
       type="text" 
       value={props.value}
@@ -257,11 +257,38 @@ const InputField = (props: { label: string, value: string, onInput: (v: string) 
   </div>
 );
 
-const ResultItem = (props: { label: string, value: string | number }) => (
-  <div class="flex items-center justify-between">
-    <span class="font-serif text-[#6B6255] text-sm">{props.label}</span>
-    <span class="font-sans font-medium text-[#2D2D2D] text-sm">{props.value}</span>
-  </div>
-);
+const ResultItem = (props: { label: string, value: string | number }) => {
+  const [copied, setCopied] = createSignal(false);
+
+  const handleCopy = () => {
+    const text = String(props.value).replace(/,/g, '');
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }).catch(err => {
+        console.error('Failed to copy:', err);
+      });
+    }
+  };
+
+  return (
+    <div class="flex items-center group">
+      <button 
+        onClick={handleCopy}
+        class="mr-2 p-1 rounded hover:bg-[#F0EFEC] transition-colors text-[#8A847A] hover:text-[#2D2D2D] focus:outline-none"
+        title="Copy value"
+      >
+        <Show when={copied()} fallback={<Copy size={14} class="opacity-0 group-hover:opacity-100 transition-opacity" />}>
+          <Check size={14} class="text-[#5A7258]" />
+        </Show>
+      </button>
+      <div class="flex-1 flex items-center justify-between">
+        <span class="font-serif text-[#6B6255] text-sm">{props.label}</span>
+        <span class="font-sans font-medium text-[#2D2D2D] text-sm">{props.value}</span>
+      </div>
+    </div>
+  );
+};
 
 export default WelchTTestCalculator;

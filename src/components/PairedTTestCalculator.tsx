@@ -1,14 +1,14 @@
 import { createSignal, createMemo, Show, createEffect, For, JSX } from 'solid-js';
 import { AlertCircle, CheckCircle2, Copy, Check } from 'lucide-solid';
-import { calculateMannWhitneyU, format, parseNumberInput, ParsedNumberInput } from '~/lib/stats';
+import { calculatePairedTTest, format, parseNumberInput, ParsedNumberInput } from '~/lib/stats';
 import { getStoredValue, setStoredValue } from '~/lib/storage';
 
-const MannWhitneyUCalculator = () => {
-  const [raw1, setRaw1] = createSignal(getStoredValue('stats.mannwhitney.sample1.raw', '12, 15, 11, 18, 14'));
-  const [raw2, setRaw2] = createSignal(getStoredValue('stats.mannwhitney.sample2.raw', '9, 13, 10, 12, 8'));
+const PairedTTestCalculator = () => {
+  const [raw1, setRaw1] = createSignal(getStoredValue('stats.paired.sample1.raw', '12, 15, 11, 18, 14'));
+  const [raw2, setRaw2] = createSignal(getStoredValue('stats.paired.sample2.raw', '9, 13, 10, 12, 8'));
 
-  createEffect(() => setStoredValue('stats.mannwhitney.sample1.raw', raw1()));
-  createEffect(() => setStoredValue('stats.mannwhitney.sample2.raw', raw2()));
+  createEffect(() => setStoredValue('stats.paired.sample1.raw', raw1()));
+  createEffect(() => setStoredValue('stats.paired.sample2.raw', raw2()));
 
   const parsed1 = createMemo(() => parseNumberInput(raw1()));
   const parsed2 = createMemo(() => parseNumberInput(raw2()));
@@ -17,10 +17,10 @@ const MannWhitneyUCalculator = () => {
     const sample1 = parsed1().numbers;
     const sample2 = parsed2().numbers;
 
-    if (sample1.length === 0 || sample2.length === 0) return null;
+    if (sample1.length === 0 || sample2.length === 0 || sample1.length !== sample2.length || sample1.length < 2) return null;
     if (parsed1().errors > 0 || parsed2().errors > 0) return null;
 
-    return calculateMannWhitneyU(sample1, sample2);
+    return calculatePairedTTest(sample1, sample2);
   });
 
   return (
@@ -32,13 +32,13 @@ const MannWhitneyUCalculator = () => {
           <div class="space-y-6">
             <TwoSampleContainer>
               <RawSampleInput
-                title="Sample 1"
+                title="Sample A"
                 value={raw1()}
                 onInput={setRaw1}
                 parsed={parsed1()}
               />
               <RawSampleInput
-                title="Sample 2"
+                title="Sample B"
                 value={raw2()}
                 onInput={setRaw2}
                 parsed={parsed2()}
@@ -50,15 +50,27 @@ const MannWhitneyUCalculator = () => {
           <div class="bg-white rounded-2xl shadow-sm border border-[#E6E4DD] p-6 flex flex-col justify-center">
             <Show when={results()} fallback={
               <div class="text-center text-[#8A847A] font-serif py-12">
-                Enter valid data for both samples to see results.
+                <Show when={parsed1().numbers.length !== parsed2().numbers.length && parsed1().numbers.length > 0 && parsed2().numbers.length > 0}>
+                  <p class="text-[#A64635] mb-2">Sample sizes must be equal for a paired test.</p>
+                </Show>
+                Enter valid data (equal sample sizes, n ≥ 2) to see results.
               </div>
             }>
               <div class="space-y-4">
-                <ResultItem label={<span>U score</span>} value={format(results()!.uA)} />
-                <div class="border-t border-dotted border-[#E6E4DD] my-2"></div>
-                <ResultItem label="z-score" value={format(results()!.z)} />
+                <ResultItem label="t-score" value={format(results()!.t)} />
+                <ResultItem label="Degrees of Freedom" value={format(results()!.df)} />
                 <div class="border-t border-dotted border-[#E6E4DD] my-2"></div>
                 <ResultItem label="Two-tailed P value" value={results()!.p < 0.0001 ? '< 0.0001' : format(results()!.p)} />
+                <div class="border-t border-dotted border-[#E6E4DD] my-2"></div>
+                <div class="flex flex-col">
+                  <span class="font-serif text-[#6B6255] text-sm">95% Confidence Interval</span>
+                  <span class="font-sans font-medium text-[#2D2D2D] text-lg mt-1">
+                    [{format(results()!.ciLow)}, {format(results()!.ciHigh)}]
+                  </span>
+                  <span class="text-xs text-[#8A847A] font-serif mt-1 italic">
+                    Mean of the differences
+                  </span>
+                </div>
               </div>
             </Show>
           </div>
@@ -185,4 +197,4 @@ const ResultItem = (props: { label: JSX.Element | string, value: string | number
   );
 };
 
-export default MannWhitneyUCalculator;
+export default PairedTTestCalculator;

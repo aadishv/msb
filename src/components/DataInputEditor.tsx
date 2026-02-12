@@ -1,5 +1,5 @@
 import { createSignal, createMemo, For, Show, createEffect } from 'solid-js';
-import { AlertCircle, CheckCircle2 } from 'lucide-solid';
+import { AlertCircle, CheckCircle2, Copy, Check } from 'lucide-solid';
 import { calculateStats, format, parseNumberInput } from '~/lib/stats';
 import { getStoredValue, setStoredValue } from '~/lib/storage';
 
@@ -131,11 +131,38 @@ const DataInputEditor = () => {
   );
 };
 
-const StatItem = (props: { label: string, value: string | number }) => (
-  <div class="flex items-center justify-between border-b border-dotted border-[#E6E4DD] pb-1 last:border-0">
-    <span class="font-serif text-[#6B6255] text-sm">{props.label}</span>
-    <span class="font-sans font-medium text-[#2D2D2D] text-sm">{props.value}</span>
-  </div>
-);
+const StatItem = (props: { label: string, value: string | number }) => {
+  const [copied, setCopied] = createSignal(false);
+
+  const handleCopy = () => {
+    const text = String(props.value).replace(/,/g, '');
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }).catch(err => {
+        console.error('Failed to copy:', err);
+      });
+    }
+  };
+
+  return (
+    <div class="flex items-center group border-b border-dotted border-[#E6E4DD] pb-1 last:border-0">
+      <button 
+        onClick={handleCopy}
+        class="mr-2 p-1 rounded hover:bg-[#F0EFEC] transition-colors text-[#8A847A] hover:text-[#2D2D2D] focus:outline-none"
+        title="Copy value"
+      >
+        <Show when={copied()} fallback={<Copy size={14} class="opacity-0 group-hover:opacity-100 transition-opacity" />}>
+          <Check size={14} class="text-[#5A7258]" />
+        </Show>
+      </button>
+      <div class="flex-1 flex items-center justify-between">
+        <span class="font-serif text-[#6B6255] text-sm">{props.label}</span>
+        <span class="font-sans font-medium text-[#2D2D2D] text-sm">{props.value}</span>
+      </div>
+    </div>
+  );
+};
 
 export default DataInputEditor;
