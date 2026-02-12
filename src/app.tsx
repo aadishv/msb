@@ -9,7 +9,7 @@ export default function App() {
     <Router
       root={props => (
         <MetaProvider>
-          <Title>Statistical Calculator</Title>
+          <Title>unofficial msb calculator</Title>
           <Suspense>{props.children}</Suspense>
         </MetaProvider>
       )}
