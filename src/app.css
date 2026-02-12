@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'AppSans';
+  src: url('/fonts/sans-regular.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'AppSans';
+  src: url('/fonts/sans-italic.woff2') format('woff2');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'AppSerif';
+  src: url('/fonts/serif-regular.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'AppSerif';
+  src: url('/fonts/serif-italic.woff2') format('woff2');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'AppMono';
+  src: url('/fonts/mono-regular.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'AppMono';
+  src: url('/fonts/mono-italic.woff2') format('woff2');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: 'AppSans', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'AppSerif', ui-serif, Georgia, serif;
+  --font-mono: 'AppMono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+body {
+  font-family: var(--font-sans);
+}

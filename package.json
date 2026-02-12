@@ -1,0 +1,33 @@
+{
+  "name": "example-basic",
+  "type": "module",
+  "scripts": {
+    "dev": "vinxi dev",
+    "build": "vinxi build",
+    "start": "vinxi start",
+    "version": "vinxi version",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@solidjs/meta": "^0.29.4",
+    "@solidjs/router": "^0.15.0",
+    "@solidjs/start": "^1.1.0",
+    "jstat": "^1.9.6",
+    "lucide-solid": "^0.563.0",
+    "solid-js": "^1.9.5",
+    "vinxi": "^0.5.7"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.18",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@vitest/ui": "^4.0.18",
+    "autoprefixer": "^10.4.24",
+    "jsdom": "^28.0.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18",
+    "vitest": "^4.0.18"
+  }
+}
