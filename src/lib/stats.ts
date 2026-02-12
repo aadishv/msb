@@ -425,3 +425,69 @@ export function calculateRepeatedMeasuresANOVA(samples: number[][]): AnovaResult
 
   return result;
 }
+
+export function calculateKruskalWallis(samples: number[][]) {
+  const k = samples.length;
+  if (k < 2) return null;
+
+  const groupCounts = samples.map((s) => s.length);
+  const totalN = groupCounts.reduce((a, b) => a + b, 0);
+
+  if (groupCounts.some((n) => n === 0) || totalN <= k) return null;
+
+  const combined = samples
+    .flatMap((sample, index) =>
+      sample.map((value) => ({ value, group: index }))
+    )
+    .sort((a, b) => a.value - b.value);
+
+  const ranks = new Array(combined.length);
+  let i = 0;
+  while (i < combined.length) {
+    let j = i;
+    while (j < combined.length && combined[j].value === combined[i].value) {
+      j++;
+    }
+    const rank = (i + 1 + j) / 2;
+    for (let k = i; k < j; k++) {
+      ranks[k] = rank;
+    }
+    i = j;
+  }
+
+  const groupRankSums = new Array(k).fill(0);
+  for (let k = 0; k < combined.length; k++) {
+    groupRankSums[combined[k].group] += ranks[k];
+  }
+
+  let h =
+    (12 / (totalN * (totalN + 1))) *
+      groupRankSums.reduce(
+        (acc, sum, idx) => acc + Math.pow(sum, 2) / groupCounts[idx],
+        0
+      ) -
+    3 * (totalN + 1);
+
+  // Tie correction
+  const tieCounts = new Map<number, number>();
+  combined.forEach((item) => {
+    tieCounts.set(item.value, (tieCounts.get(item.value) || 0) + 1);
+  });
+
+  let tieSum = 0;
+  for (const count of tieCounts.values()) {
+    if (count > 1) {
+      tieSum += Math.pow(count, 3) - count;
+    }
+  }
+
+  if (tieSum > 0 && totalN > 1) {
+    const correction = 1 - tieSum / (Math.pow(totalN, 3) - totalN);
+    h /= correction;
+  }
+
+  const df = k - 1;
+  const p = 1 - jStat.chisquare.cdf(h, df);
+
+  return { h, df, p };
+}

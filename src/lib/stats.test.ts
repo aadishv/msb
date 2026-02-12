@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateWelchTTest, calculateSampleSummary, calculateMannWhitneyU, calculatePairedTTest, calculateANOVA, calculateRepeatedMeasuresANOVA, calculateTukeyHSD } from './stats';
+import { calculateWelchTTest, calculateSampleSummary, calculateMannWhitneyU, calculatePairedTTest, calculateANOVA, calculateRepeatedMeasuresANOVA, calculateTukeyHSD, calculateKruskalWallis } from './stats';
 
 describe('stats lib', () => {
   describe('calculateWelchTTest', () => {
@@ -178,6 +178,25 @@ describe('stats lib', () => {
       expect(results[0].pValue).toBeLessThan(0.05);
       expect(results[1].pValue).toBeLessThan(0.001);
       expect(results[2].pValue).toBeLessThan(0.05);
+    });
+  });
+
+  describe('calculateKruskalWallis', () => {
+    it('should correctly calculate Kruskal-Wallis for sequential groups', () => {
+      const samples = [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9]
+      ];
+
+      const result = calculateKruskalWallis(samples);
+
+      expect(result).not.toBeNull();
+      if (result) {
+        expect(result.h).toBeCloseTo(7.2, 1);
+        expect(result.df).toBe(2);
+        expect(result.p).toBeCloseTo(0.0273, 4);
+      }
     });
   });
 });

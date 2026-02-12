@@ -4,6 +4,7 @@ import WelchTTestCalculator from "~/components/WelchTTestCalculator";
 import MannWhitneyUCalculator from "~/components/MannWhitneyUCalculator";
 import PairedTTestCalculator from "~/components/PairedTTestCalculator";
 import AnovaCalculator from "~/components/AnovaCalculator";
+import KruskalWallisCalculator from "~/components/KruskalWallisCalculator";
 
 export default function Home() {
   return (
@@ -45,7 +46,9 @@ export default function Home() {
             <div class="text-center">
               <a href="#anova" class="text-[#2D2D2D] hover:underline decoration-[#D8D4CF]">ANOVA</a>
             </div>
-            <div class="text-center text-[#6B6255]">Kruskal-Wallis</div>
+            <div class="text-center">
+              <a href="#kruskal-wallis" class="text-[#2D2D2D] hover:underline decoration-[#D8D4CF]">Kruskal-Wallis</a>
+            </div>
           </div>
         </div>
 
@@ -110,7 +113,7 @@ export default function Home() {
         <PairedTTestCalculator />
       </section>
 
-      <section id="anova" class="w-full flex flex-col items-center space-y-4 mt-16 mb-24 scroll-mt-24">
+      <section id="anova" class="w-full flex flex-col items-center space-y-4 mt-16 scroll-mt-24">
         <div class="max-w-6xl w-full space-y-2 text-left">
           <h2 class="text-2xl md:text-3xl font-serif text-[#2D2D2D] font-medium">
             One-way ANOVA
@@ -120,6 +123,18 @@ export default function Home() {
           </p>
         </div>
         <AnovaCalculator />
+      </section>
+
+      <section id="kruskal-wallis" class="w-full flex flex-col items-center space-y-4 mt-16 mb-24 scroll-mt-24">
+        <div class="max-w-6xl w-full space-y-2 text-left">
+          <h2 class="text-2xl md:text-3xl font-serif text-[#2D2D2D] font-medium">
+            Kruskal-Wallis test
+          </h2>
+          <p class="text-[#6B6255] text-base md:text-lg font-serif">
+            Non-parametric test to compare three or more independent samples.
+          </p>
+        </div>
+        <KruskalWallisCalculator />
       </section>
     </main>
   );
