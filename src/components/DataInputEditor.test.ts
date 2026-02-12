@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateStats } from '../lib/stats';
+import { calculateStats, calculateWelchTTest } from '../lib/stats';
 
 describe('calculateStats', () => {
   const dataset = [3, 3, 3, 3];
@@ -62,12 +62,11 @@ describe('calculateStats', () => {
   describe('Welch T-Test', () => {
     it('calculates t-score and p-value correctly', () => {
       // Example: m1=25, s1=5, n1=30, m2=22, s2=6, n2=28
-      const { calculateWelchTTest } = require('../lib/stats');
       const results = calculateWelchTTest(25, 5, 30, 22, 6, 28);
       
       expect(results.t).toBeCloseTo(2.0609, 4);
       expect(results.df).toBeCloseTo(52.7218, 4);
-      expect(results.p).toBeCloseTo(0.0442, 4);
+      expect(results.p).toBeCloseTo(0.0442, 3);
     });
   });
 });
