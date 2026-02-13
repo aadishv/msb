@@ -206,7 +206,7 @@ export function calculateStats(numbers: number[], isPopulation: boolean) {
       .filter(([_, count]) => count === maxCount)
       .map(([val]) => val)
       .sort((a, b) => a - b);
-    mode = modes.length === numbers.length ? 'No' : modes.join(', ');
+    mode = modes.length === numbers.length && numbers.length > 1 ? 'No' : modes.join(', ');
   } else {
     mode = 'No';
   }
@@ -216,14 +216,12 @@ export function calculateStats(numbers: number[], isPopulation: boolean) {
   const range = max - min;
 
   const getQuartile = (arr: number[], q: number) => {
-    const pos = (arr.length - 1) * q;
+    const pos = (arr.length + 1) * q - 1;
     const base = Math.floor(pos);
     const rest = pos - base;
-    if (arr[base + 1] !== undefined) {
-      return arr[base] + rest * (arr[base + 1] - arr[base]);
-    } else {
-      return arr[base];
-    }
+    if (base < 0) return arr[0];
+    if (base >= arr.length - 1) return arr[arr.length - 1];
+    return arr[base] + rest * (arr[base + 1] - arr[base]);
   };
 
   const q1 = getQuartile(sorted, 0.25);
