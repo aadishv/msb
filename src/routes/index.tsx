@@ -76,22 +76,68 @@ export default function Home() {
   return (
     <main class="min-h-screen bg-[#F5F4EF] text-[#393939] font-sans p-6 md:p-12 flex flex-col items-center">
       <div class="w-full max-w-6xl my-12 font-serif space-y-8">
-        <div class="space-y-4">
+        <div class="space-y-3">
           <div class="text-[11px] tracking-[0.24em] uppercase text-[#8A847A] font-sans">Unofficial MSB calculator</div>
           <h1 class="text-4xl md:text-6xl text-[#2D2D2D] leading-none">Field guide to the usual biostats tests.</h1>
-          <p class="max-w-3xl text-[#6B6255] text-base md:text-lg leading-relaxed">
-            The old logic is gone. These calculators now use the reverse-engineered Vassar-style implementations we validated against the live site and SciPy, while keeping the polished interface you already had.
-          </p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 text-sm">
-          {sections.map((section) => (
-            <a href={`#${section.id}`} class="bg-white border border-[#E6E4DD] rounded-2xl px-4 py-4 shadow-sm hover:border-[#CFC8BE] hover:-translate-y-[1px] transition-all">
-              <div class="font-medium text-[#2D2D2D]">{section.title}</div>
-              <div class="text-[#6B6255] text-xs mt-1 leading-relaxed">{section.description}</div>
-            </a>
-          ))}
+        <div class="grid grid-cols-3 border-b border-[#D8D4CF] pb-2 text-[#6B6255] tracking-wider text-xs font-sans">
+          <div>Test case</div>
+          <div class="text-center">Parametric</div>
+          <div class="text-center">Nonparametric</div>
         </div>
+        <div class="divide-y divide-[#D8D4CF] text-sm md:text-base">
+          <div class="grid grid-cols-3 py-4 items-center gap-4">
+            <div class="text-[#2D2D2D]">
+              <div class="font-medium">Standard case</div>
+              <div class="text-xs text-[#6B6255] font-sans">2 unmatched samples</div>
+            </div>
+            <div class="text-center"><a href="#independent-t-test" class="text-[#2D2D2D] hover:underline decoration-[#D8D4CF]">Two-sample t-test</a></div>
+            <div class="text-center"><a href="#mann-whitney-u" class="text-[#2D2D2D] hover:underline decoration-[#D8D4CF]">Mann-Whitney</a></div>
+          </div>
+          <div class="grid grid-cols-3 py-4 items-center gap-4">
+            <div class="text-[#2D2D2D]">
+              <div class="font-medium">Matched samples</div>
+              <div class="text-xs text-[#6B6255] font-sans">2 groups</div>
+            </div>
+            <div class="text-center"><a href="#paired-t-test" class="text-[#2D2D2D] hover:underline decoration-[#D8D4CF]">Paired t-test</a></div>
+            <div class="text-center text-[#8A847A]">Wilcoxon</div>
+          </div>
+          <div class="grid grid-cols-3 py-4 items-center gap-4">
+            <div class="text-[#2D2D2D]">
+              <div class="font-medium">More than 2 groups</div>
+              <div class="text-xs text-[#6B6255] font-sans">Matched or unmatched</div>
+            </div>
+            <div class="text-center"><a href="#anova" class="text-[#2D2D2D] hover:underline decoration-[#D8D4CF]">ANOVA</a></div>
+            <div class="text-center"><a href="#kruskal-wallis" class="text-[#2D2D2D] hover:underline decoration-[#D8D4CF]">Kruskal-Wallis</a></div>
+          </div>
+          <div class="grid grid-cols-3 py-4 items-center gap-4">
+            <div class="text-[#2D2D2D]">
+              <div class="font-medium">Frequency data</div>
+              <div class="text-xs text-[#6B6255] font-sans">Counts and contingency tables</div>
+            </div>
+            <div class="text-center"><a href="#chi-square-gof" class="text-[#2D2D2D] hover:underline decoration-[#D8D4CF]">Chi-square goodness of fit</a></div>
+            <div class="text-center"><a href="#chi-square-association" class="text-[#2D2D2D] hover:underline decoration-[#D8D4CF]">Chi-square association</a></div>
+          </div>
+          <div class="grid grid-cols-3 py-4 items-center gap-4">
+            <div class="text-[#2D2D2D]">
+              <div class="font-medium">Association / trend</div>
+              <div class="text-xs text-[#6B6255] font-sans">Paired x-y data</div>
+            </div>
+            <div class="text-center"><a href="#pearson" class="text-[#2D2D2D] hover:underline decoration-[#D8D4CF]">PMCC / regression</a></div>
+            <div class="text-center"><a href="#spearman" class="text-[#2D2D2D] hover:underline decoration-[#D8D4CF]">Spearman</a></div>
+          </div>
+        </div>
+
+        <nav class="flex flex-col gap-2 pt-2">
+          <span class="text-[#6B6255] tracking-wider text-[10px] font-sans uppercase">Other tools</span>
+          <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+            <a href="#general-stats" class="text-[#2D2D2D] hover:underline decoration-[#D8D4CF]">Basic sample statistics</a>
+            <a href="#pearson" class="text-[#2D2D2D] hover:underline decoration-[#D8D4CF]">Simple linear regression</a>
+            <a href="#pearson" class="text-[#2D2D2D] hover:underline decoration-[#D8D4CF]">Model 2 regression</a>
+            <a href="#independent-t-test" class="text-[#2D2D2D] hover:underline decoration-[#D8D4CF]">Confidence interval for mean difference</a>
+          </div>
+        </nav>
       </div>
 
       {sections.map((section, index) => {
