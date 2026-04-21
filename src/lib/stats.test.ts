@@ -65,12 +65,11 @@ describe('stats lib', () => {
 
       expect(result).not.toBeNull();
       if (result) {
-        expect(result.uA).toBe(3);
-        expect(result.uB).toBe(6);
-        // uSmallest = 3, meanU = 4.5
-        // sigmaU = sqrt(3*3*7/12) = 2.2913
-        // z = (|3 - 4.5| - 0.5) / 2.2913 = 1 / 2.2913 = 0.4364
-        expect(result.z).toBeCloseTo(0.4364, 4);
+        expect(result.uA).toBe(6);
+        expect(result.uB).toBe(3);
+        // VassarStats only reports the normal-approximation z when both samples are at least size 5.
+        expect(result.z).toBeNull();
+        expect(result.p).toBeNull();
       }
     });
   });

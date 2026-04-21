@@ -1,260 +1,116 @@
-import { createSignal, createMemo, Show, createEffect, For, JSX, Index } from 'solid-js';
-import { AlertCircle, CheckCircle2, Plus, Trash2 } from 'lucide-solid';
-import { format, parseNumberInput, calculateSampleSummary, ParsedNumberInput, calculateANOVA, calculateRepeatedMeasuresANOVA, AnovaResult, formatTukeyP } from '~/lib/stats';
-import { getStoredValue, setStoredValue } from '~/lib/storage';
+import { createEffect, createMemo, createSignal, For } from 'solid-js';
+import HighlightedTextareaCard from './HighlightedTextareaCard';
 import { StatResult } from './StatResult';
+import {
+  calculateANOVA,
+  calculateRepeatedMeasuresANOVA,
+  calculateSampleSummary,
+  format,
+  parseNumberInput,
+} from '~/lib/stats';
+import { getStoredValue, setStoredValue } from '~/lib/storage';
 
 interface SampleData {
   id: string;
   value: string;
 }
 
-const generateId = () => Math.random().toString(36).substring(2, 11);
+const makeId = () => Math.random().toString(36).slice(2, 10);
 
-const AnovaCalculator = () => {
-  // For ANOVA, we'll focus on raw data first as requested by "add/remove samples"
-  const defaultSamples: SampleData[] = [
-    { id: generateId(), value: '10, 12, 11, 13, 11' },
-    { id: generateId(), value: '14, 15, 13, 16, 14' },
-    { id: generateId(), value: '18, 17, 19, 17, 18' },
-  ];
+export default function AnovaCalculator() {
+  const fallback = [
+    { id: makeId(), value: '4.8\n5.1\n5.4\n5.0\n4.9\n5.3' },
+    { id: makeId(), value: '6.2\n6.0\n6.5\n6.1\n6.4\n6.3' },
+    { id: makeId(), value: '7.1\n7.5\n7.2\n7.4\n7.0\n7.3' },
+  ] satisfies SampleData[];
 
-  const [samples, setSamples] = createSignal<SampleData[]>(getStoredValue('stats.anova.samples', defaultSamples));
-  const [paired, setPaired] = createSignal<boolean>(getStoredValue('stats.anova.paired', false));
+  const [samples, setSamples] = createSignal<SampleData[]>(getStoredValue('stats.anova.samples', fallback));
+  const [paired, setPaired] = createSignal(getStoredValue('stats.anova.paired', false));
 
-  createEffect(() => {
-    setStoredValue('stats.anova.samples', samples());
+  createEffect(() => setStoredValue('stats.anova.samples', samples()));
+  createEffect(() => setStoredValue('stats.anova.paired', paired()));
+
+  const parsed = createMemo(() => samples().map((sample) => {
+    const parsedValue = parseNumberInput(sample.value);
+    return { ...sample, parsed: parsedValue, summary: calculateSampleSummary(parsedValue.numbers) };
+  }));
+
+  const results = createMemo(() => {
+    if (parsed().some((sample) => sample.parsed.errors > 0)) return null;
+    const groups = parsed().map((sample) => sample.parsed.numbers).filter((group) => group.length > 0);
+    return paired() ? calculateRepeatedMeasuresANOVA(groups) : calculateANOVA(groups);
   });
 
-  createEffect(() => {
-    setStoredValue('stats.anova.paired', paired());
-  });
-
-  const addSample = () => {
-    setSamples([...samples(), { id: generateId(), value: '' }]);
-  };
-
+  const addSample = () => setSamples([...samples(), { id: makeId(), value: '' }]);
   const removeSample = (id: string) => {
     if (samples().length <= 2) return;
-    setSamples(samples().filter(s => s.id !== id));
+    setSamples(samples().filter((sample) => sample.id !== id));
   };
-
-  const updateSampleValue = (id: string, value: string) => {
-    setSamples(samples().map(s => s.id === id ? { ...s, value } : s));
+  const updateSample = (id: string, value: string) => {
+    setSamples(samples().map((sample) => (sample.id === id ? { ...sample, value } : sample)));
   };
-
-  const parsedSamples = createMemo(() => {
-    return samples().map(s => ({
-      ...s,
-      parsed: parseNumberInput(s.value),
-      summary: calculateSampleSummary(parseNumberInput(s.value).numbers)
-    }));
-  });
-
-  // Results placeholder
-  const results = createMemo<AnovaResult | null>(() => {
-    const data = parsedSamples()
-      .map(s => s.parsed.numbers)
-      .filter(n => n.length > 0);
-    
-    if (data.length < 2) return null;
-
-    if (paired()) {
-      return calculateRepeatedMeasuresANOVA(data);
-    }
-    
-    return calculateANOVA(data);
-  });
 
   return (
-    <div class="max-w-6xl w-full flex flex-col gap-8">
-      
-      <div class="flex flex-col space-y-4">
-        <div class="flex p-1 bg-[#E6E4DD] rounded-xl border border-[#D1CFCA] w-fit">
-          <button 
-            onClick={() => setPaired(false)}
-            class={`px-4 py-1.5 text-sm font-serif rounded-lg transition-all ${!paired() ? 'bg-white text-[#2D2D2D] shadow-sm' : 'text-[#6B6255] hover:text-[#393939]'}`}
-          >
-            Unpaired
-          </button>
-          <button 
-            onClick={() => setPaired(true)}
-            class={`px-4 py-1.5 text-sm font-serif rounded-lg transition-all ${paired() ? 'bg-white text-[#2D2D2D] shadow-sm' : 'text-[#6B6255] hover:text-[#393939]'}`}
-          >
-            Paired (RM)
-          </button>
+    <div class="max-w-6xl w-full flex flex-col gap-4">
+      <div class="flex p-1 bg-[#E6E4DD] rounded-xl border border-[#D1CFCA] w-fit">
+        <button onClick={() => setPaired(false)} class={`px-4 py-1.5 text-sm font-serif rounded-lg transition-all ${!paired() ? 'bg-white text-[#2D2D2D] shadow-sm' : 'text-[#6B6255]'}`}>Independent samples</button>
+        <button onClick={() => setPaired(true)} class={`px-4 py-1.5 text-sm font-serif rounded-lg transition-all ${paired() ? 'bg-white text-[#2D2D2D] shadow-sm' : 'text-[#6B6255]'}`}>Correlated samples</button>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-[1fr_384px] gap-6 items-stretch">
+        <div class="bg-white rounded-2xl shadow-sm border border-[#E6E4DD] overflow-hidden">
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-[#E6E4DD]">
+            <For each={parsed()}>
+              {(sample, index) => (
+                <HighlightedTextareaCard
+                  title={`Sample ${index() + 1}`}
+                  value={sample.value}
+                  onInput={(value) => updateSample(sample.id, value)}
+                  parsed={sample.parsed}
+                  summary={sample.summary ? `n=${sample.summary.n} · mean=${format(sample.summary.mean)} · sd=${format(sample.summary.sd)}` : '-'}
+                  onRemove={() => removeSample(sample.id)}
+                  canRemove={samples().length > 2}
+                />
+              )}
+            </For>
+          </div>
+          <div class="p-4 bg-[#F9F9F8] flex justify-center border-t border-[#E6E4DD]">
+            <button onClick={addSample} class="px-4 py-2 bg-white border border-[#D1CFCA] rounded-xl text-sm font-serif text-[#2D2D2D] hover:bg-[#F5F4EF] transition-colors shadow-sm">Add sample</button>
+          </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-[1fr_384px] gap-6 items-stretch">
-          
-          {/* Inputs */}
-          <div class="space-y-6">
-            <div class="bg-white rounded-2xl shadow-sm border border-[#E6E4DD] overflow-hidden">
-              <div class="flex flex-wrap divide-[#E6E4DD] border-b border-[#E6E4DD]">
-                <Index each={parsedSamples()}>
-                  {(sample, index) => (
-                    <div class="flex-1 min-w-[300px] border-r border-b last:border-r-0 border-[#E6E4DD]">
-                      <RawSampleInput
-                        title={`Sample ${index + 1}`}
-                        value={sample().value}
-                        onInput={(v) => updateSampleValue(sample().id, v)}
-                        onRemove={() => removeSample(sample().id)}
-                        canRemove={samples().length > 2}
-                        parsed={sample().parsed}
-                        summary={sample().summary}
-                      />
-                    </div>
-                  )}
-                </Index>
-              </div>
-              <div class="p-4 bg-[#F9F9F8] flex justify-center">
-                <button 
-                  onClick={addSample}
-                  class="flex items-center space-x-2 px-4 py-2 bg-white border border-[#D1CFCA] rounded-xl text-sm font-serif text-[#2D2D2D] hover:bg-[#F5F4EF] transition-colors shadow-sm"
-                >
-                  <Plus size={16} />
-                  <span>Add Sample</span>
-                </button>
-              </div>
+        <div class="bg-white rounded-2xl shadow-sm border border-[#E6E4DD] p-6 flex flex-col justify-center">
+          {!results() ? (
+            <div class="text-center text-[#8A847A] font-serif py-12">
+              {paired() ? 'Enter valid equally-sized samples (n ≥ 2).' : 'Enter at least two valid samples with n ≥ 2.'}
             </div>
-          </div>
+          ) : (
+            <div class="space-y-4">
+              <StatResult label="F-statistic" value={format(results()!.fValue)} showBorder />
+              <StatResult label="Treatment df" value={results()!.dfBetween} showBorder />
+              <StatResult label="Error df" value={results()!.dfWithin} showBorder />
+              <StatResult label="P value" value={results()!.pValue < 0.0001 ? '< 0.0001' : format(results()!.pValue)} showBorder />
+              <StatResult label="SS between" value={format(results()!.ssBetween)} showBorder />
+              <StatResult label={paired() ? 'MS error' : 'MS within'} value={format(paired() ? results()!.msError ?? null : results()!.msWithin ?? null)} />
 
-          <div class="bg-white rounded-2xl shadow-sm border border-[#E6E4DD] p-6 flex flex-col justify-center">
-            <Show when={results()} fallback={
-              <div class="text-center text-[#8A847A] font-serif py-12">
-                <Show when={paired() && parsedSamples().some(s => s.summary && s.summary.n !== parsedSamples()[0].summary?.n)}>
-                  <p class="text-[#A64635] mb-2">Sample sizes must be equal for a paired test.</p>
-                </Show>
-                Enter data for at least two samples to see ANOVA results.
-              </div>
-            }>
-              {(res) => (
-                <div class="space-y-4">
-                  <StatResult label="F-statistic" value={format(res().fValue)} />
-                  <div class="border-t border-dotted border-[#E6E4DD] my-2"></div>
-                  <StatResult label="Treatment DoF" value={res().dfBetween} />
-                  <StatResult label="Error DoF" value={res().dfWithin} />
-                  <div class="border-t border-dotted border-[#E6E4DD] my-2"></div>
-                  <StatResult label="P value" value={res().pValue < 0.0001 ? '< 0.0001' : format(res().pValue)} />
-
-                  <Show when={res().tukeyResults}>
-                    <div class="mt-8 pt-6 border-t border-[#E6E4DD]">
-                      <h4 class="text-[10px] font-bold text-[#8A847A] uppercase tracking-[0.1em] font-sans mb-4">Post-hoc Tukey HSD</h4>
-                      <div class="space-y-2">
-                        <For each={res().tukeyResults}>
-                          {(tukey) => (
-                            <StatResult 
-                              label={`Sample ${tukey.groupA + 1} vs ${tukey.groupB + 1}`} 
-                              value={formatTukeyP(tukey.pValue)} 
-                            />
-                          )}
-                        </For>
-                      </div>
-                    </div>
-                  </Show>
+              {results()!.tukeyResults && results()!.tukeyResults!.length > 0 && (
+                <div class="pt-4 border-t border-[#E6E4DD] space-y-3">
+                  <div class="text-[10px] font-bold text-[#8A847A] uppercase tracking-[0.1em] font-sans">Tukey HSD</div>
+                  <For each={results()!.tukeyResults}>
+                    {(comparison) => (
+                      <StatResult
+                        label={`S${comparison.groupA + 1} vs S${comparison.groupB + 1}`}
+                        value={comparison.label05}
+                        showBorder
+                      />
+                    )}
+                  </For>
                 </div>
               )}
-            </Show>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const RawSampleInput = (props: { 
-  title: string, 
-  value: string, 
-  onInput: (v: string) => void, 
-  onRemove: () => void,
-  canRemove: boolean,
-  parsed: ParsedNumberInput, 
-  summary: { mean: number; sd: number; n: number } | null 
-}) => {
-  let textareaRef: HTMLTextAreaElement | undefined;
-  let backdropRef: HTMLDivElement | undefined;
-
-  const handleScroll = () => {
-    if (textareaRef && backdropRef) {
-      backdropRef.scrollTop = textareaRef.scrollTop;
-      backdropRef.scrollLeft = textareaRef.scrollLeft;
-    }
-  };
-
-  const summaryText = () => {
-    if (!props.summary || props.parsed.errors > 0 || !isFinite(props.summary.sd) || props.summary.n <= 1) {
-      return '-';
-    }
-    return `n=${props.summary.n} · mean=${format(props.summary.mean)} · sd=${format(props.summary.sd)}`;
-  };
-
-  return (
-    <div class="p-6 flex flex-col min-h-[280px]">
-      <div class="flex items-center justify-between border-b border-[#F0EFEC] pb-2">
-        <h3 class="font-serif text-[#2D2D2D] font-medium">{props.title}</h3>
-        <Show when={props.canRemove}>
-          <button 
-            onClick={props.onRemove}
-            class="p-1.5 text-[#8A847A] hover:text-[#A64635] hover:bg-[#F9EBE9] rounded-md transition-colors"
-            title="Remove sample"
-          >
-            <Trash2 size={16} />
-          </button>
-        </Show>
-      </div>
-      <div class="relative w-full flex-1 font-mono text-sm leading-relaxed mt-4">
-        <div 
-          ref={backdropRef}
-          class="absolute inset-0 w-full h-full p-3 whitespace-pre-wrap break-words overflow-hidden pointer-events-none z-0 text-transparent"
-          aria-hidden="true"
-        >
-          <For each={props.parsed.tokens}>
-            {(token) => (
-              <span class={
-                token.type === 'valid' ? "bg-[#E3E1DC] rounded-sm shadow-[0_0_0_1px_#D1CFCA]" : 
-                token.type === 'error' ? "bg-[#F3DCD6] rounded-sm shadow-[0_0_0_1px_#E5BDB5]" : ""
-              }>
-                {token.content}
-              </span>
-            )}
-          </For>
-          <Show when={props.value.endsWith('\n')}><br /></Show>
-        </div>
-
-        <textarea
-          ref={textareaRef}
-          value={props.value}
-          onInput={(e) => props.onInput(e.currentTarget.value)}
-          onScroll={handleScroll}
-          spellcheck={false}
-          class="absolute inset-0 w-full h-full p-3 bg-transparent text-[#393939] caret-black resize-none border-none outline-none focus:ring-0 z-10 whitespace-pre-wrap break-words overflow-auto font-mono text-sm leading-relaxed"
-          placeholder="Enter data..."
-        />
-      </div>
-
-      <div class="mt-4 pt-3 border-t border-[#F0EFEC] flex items-center justify-between text-xs">
-        <div class="flex items-center space-x-2">
-          <Show 
-            when={props.parsed.errors > 0} 
-            fallback={
-              <div class="flex items-center text-[#5A7258] bg-[#E9F0E9] px-2 py-0.5 rounded-md">
-                <CheckCircle2 size={12} class="mr-1.5" />
-                <span class="font-medium font-serif">All data valid</span>
-              </div>
-            }
-          >
-            <div class="flex items-center text-[#A64635] bg-[#F9EBE9] px-2 py-0.5 rounded-md">
-              <AlertCircle size={12} class="mr-1.5" />
-              <span class="font-medium font-serif">{props.parsed.errors} error{props.parsed.errors > 1 ? 's' : ''}</span>
             </div>
-          </Show>
-        </div>
-        <div class="text-[#8A847A] font-serif">
-          {summaryText()}
+          )}
         </div>
       </div>
     </div>
   );
-};
-
-export default AnovaCalculator;
+}
