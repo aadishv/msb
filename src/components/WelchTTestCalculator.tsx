@@ -21,50 +21,30 @@ export default function WelchTTestCalculator() {
   });
 
   return (
-    <div class="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-[1fr_384px] gap-6 items-stretch">
-      <div class="bg-white rounded-2xl shadow-sm border border-[#E6E4DD] overflow-hidden grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-[#E6E4DD]">
-        <HighlightedTextareaCard
-          title="Sample A"
-          value={raw1()}
-          onInput={setRaw1}
-          parsed={parsed1()}
-          summary={summary1() ? `n=${summary1()!.n} · mean=${format(summary1()!.mean)} · sd=${format(summary1()!.sd)}` : '-'}
-        />
-        <HighlightedTextareaCard
-          title="Sample B"
-          value={raw2()}
-          onInput={setRaw2}
-          parsed={parsed2()}
-          summary={summary2() ? `n=${summary2()!.n} · mean=${format(summary2()!.mean)} · sd=${format(summary2()!.sd)}` : '-'}
-        />
+    <div class="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 items-start">
+      <div class="border border-[#E0E0E0] grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-[#E0E0E0]">
+        <HighlightedTextareaCard title="Sample A" value={raw1()} onInput={setRaw1} parsed={parsed1()} summary={summary1() ? `n=${summary1()!.n} · x̄=${format(summary1()!.mean)} · s=${format(summary1()!.sd)}` : '-'} />
+        <HighlightedTextareaCard title="Sample B" value={raw2()} onInput={setRaw2} parsed={parsed2()} summary={summary2() ? `n=${summary2()!.n} · x̄=${format(summary2()!.mean)} · s=${format(summary2()!.sd)}` : '-'} />
       </div>
 
-      <div class="bg-white rounded-2xl shadow-sm border border-[#E6E4DD] p-6 flex flex-col justify-center">
+      <div class="border border-[#E0E0E0] p-4">
         {!results() ? (
-          <div class="text-center text-[#8A847A] font-serif py-12">Enter at least two valid values in each sample.</div>
+          <span class="text-[11px] text-[#AAA] font-mono">Enter valid data in both samples.</span>
         ) : (
-          <div class="space-y-5">
-            <div>
-              <div class="text-[10px] font-bold text-[#8A847A] uppercase tracking-[0.1em] font-sans mb-3">Assuming equal variances</div>
-              <div class="space-y-3">
-                <StatResult label="Mean difference" value={format(results()!.differenceInMeans)} showBorder />
-                <StatResult label="t-score" value={format(results()!.pooled.t)} showBorder />
-                <StatResult label="df" value={format(results()!.pooled.df)} showBorder />
-                <StatResult label="Two-tailed P" value={results()!.pooled.p < 0.0001 ? '< 0.0001' : format(results()!.pooled.p)} showBorder />
-                <StatResult label="95% CI" value={`[${format(results()!.pooled.ci95.lower)}, ${format(results()!.pooled.ci95.upper)}]`} />
-              </div>
-            </div>
-            <div class="border-t border-[#E6E4DD]" />
-            <div>
-              <div class="text-[10px] font-bold text-[#8A847A] uppercase tracking-[0.1em] font-sans mb-3">Assuming unequal variances (Welch)</div>
-              <div class="space-y-3">
-                <StatResult label="t-score" value={format(results()!.welch.t)} showBorder />
-                <StatResult label="df" value={format(results()!.welch.df)} showBorder />
-                <StatResult label="Two-tailed P" value={results()!.welch.p < 0.0001 ? '< 0.0001' : format(results()!.welch.p)} showBorder />
-                <StatResult label="95% CI" value={`[${format(results()!.welch.ci95.lower)}, ${format(results()!.welch.ci95.upper)}]`} showBorder />
-                <StatResult label="F variance ratio" value={`${format(results()!.varianceRatio.f)} (p ${results()!.varianceRatio.p < 0.0001 ? '< 0.0001' : format(results()!.varianceRatio.p)})`} />
-              </div>
-            </div>
+          <div>
+            <div class="text-[9px] font-mono text-[#BBB] uppercase tracking-wider mb-2">Equal variances</div>
+            <StatResult label="Mean diff" value={format(results()!.differenceInMeans)} showBorder />
+            <StatResult label="t" value={format(results()!.pooled.t)} showBorder />
+            <StatResult label="df" value={format(results()!.pooled.df)} showBorder />
+            <StatResult label="P (two-tailed)" value={results()!.pooled.p < 0.0001 ? '< 0.0001' : format(results()!.pooled.p)} showBorder />
+            <StatResult label="95% CI" value={`[${format(results()!.pooled.ci95.lower)}, ${format(results()!.pooled.ci95.upper)}]`} showBorder />
+
+            <div class="text-[9px] font-mono text-[#BBB] uppercase tracking-wider mt-4 mb-2">Welch (unequal variances)</div>
+            <StatResult label="t" value={format(results()!.welch.t)} showBorder />
+            <StatResult label="df" value={format(results()!.welch.df)} showBorder />
+            <StatResult label="P (two-tailed)" value={results()!.welch.p < 0.0001 ? '< 0.0001' : format(results()!.welch.p)} showBorder />
+            <StatResult label="95% CI" value={`[${format(results()!.welch.ci95.lower)}, ${format(results()!.welch.ci95.upper)}]`} showBorder />
+            <StatResult label="F variance ratio" value={`${format(results()!.varianceRatio.f)} (p ${results()!.varianceRatio.p < 0.0001 ? '< 0.0001' : format(results()!.varianceRatio.p)})`} />
           </div>
         )}
       </div>

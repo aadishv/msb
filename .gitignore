@@ -22,6 +22,7 @@ app.config.timestamp_*.js
 
 # Temp
 gitignore
+/.rodney
 
 # System Files
 .DS_Store

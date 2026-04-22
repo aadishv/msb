@@ -15,7 +15,7 @@ export const StatResult = (props: StatResultProps) => {
     if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(() => {
         setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+        setTimeout(() => setCopied(false), 1500);
       }).catch(err => {
         console.error('Failed to copy:', err);
       });
@@ -23,17 +23,17 @@ export const StatResult = (props: StatResultProps) => {
   };
 
   return (
-    <div class={`flex items-center justify-between group ${props.showBorder ? 'border-b border-dotted border-[#E6E4DD] pb-1 last:border-0' : ''}`}>
-      <span class="font-serif text-[#6B6255] text-sm">{props.label}</span>
-      <div class="flex items-center">
-        <span class="font-sans font-medium text-[#2D2D2D] text-sm">{props.value}</span>
-        <button 
+    <div class={`flex items-center justify-between group py-1 ${props.showBorder ? 'border-b border-[#F0F0F0]' : ''}`}>
+      <span class="text-[11px] text-[#888]">{props.label}</span>
+      <div class="flex items-center gap-1">
+        <span class="font-mono text-[13px] text-[#111]">{props.value}</span>
+        <button
           onClick={handleCopy}
-          class="ml-2 p-1 rounded hover:bg-[#F0EFEC] transition-colors text-[#8A847A] hover:text-[#2D2D2D] focus:outline-none"
-          title="Copy value"
+          class="p-0.5 text-[#CCC] hover:text-[#555] transition-colors focus:outline-none opacity-0 group-hover:opacity-100"
+          title="Copy"
         >
-          <Show when={copied()} fallback={<Copy size={14} class="opacity-0 group-hover:opacity-100 transition-opacity" />}>
-            <Check size={14} class="text-[#5A7258]" />
+          <Show when={copied()} fallback={<Copy size={11} />}>
+            <Check size={11} class="text-[#5A9]" />
           </Show>
         </button>
       </div>

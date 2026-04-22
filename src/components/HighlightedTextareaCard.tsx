@@ -1,5 +1,4 @@
 import { For, Show } from 'solid-js';
-import { AlertCircle, CheckCircle2 } from 'lucide-solid';
 import type { ParsedNumberInput } from '~/lib/stats';
 
 interface HighlightedTextareaCardProps {
@@ -25,23 +24,23 @@ export default function HighlightedTextareaCard(props: HighlightedTextareaCardPr
   };
 
   return (
-    <div class="p-6 flex flex-col min-h-[320px]">
-      <div class="flex items-center justify-between border-b border-[#F0EFEC] pb-2">
-        <h3 class="font-serif text-[#2D2D2D] font-medium">{props.title}</h3>
+    <div class="p-3 flex flex-col min-h-[200px]">
+      <div class="flex items-center justify-between pb-2 mb-1">
+        <span class="text-[10px] font-medium uppercase tracking-wider text-[#999]">{props.title}</span>
         <Show when={props.canRemove && props.onRemove}>
           <button
             onClick={props.onRemove}
-            class="px-2 py-1 text-xs rounded-md bg-[#F9EBE9] text-[#A64635] hover:bg-[#F3DCD6] transition-colors"
+            class="text-[10px] text-[#999] hover:text-[#c00] transition-colors"
           >
             Remove
           </button>
         </Show>
       </div>
 
-      <div class="relative w-full flex-1 font-mono text-sm leading-relaxed mt-4">
+      <div class="relative w-full flex-1 font-mono text-sm leading-relaxed">
         <div
           ref={backdropRef}
-          class="absolute inset-0 w-full h-full p-3 whitespace-pre-wrap break-words overflow-hidden pointer-events-none z-0 text-transparent"
+          class="absolute inset-0 w-full h-full p-1 whitespace-pre-wrap break-words overflow-hidden pointer-events-none z-0 text-transparent"
           aria-hidden="true"
         >
           <For each={props.parsed.tokens}>
@@ -49,9 +48,9 @@ export default function HighlightedTextareaCard(props: HighlightedTextareaCardPr
               <span
                 class={
                   token.type === 'valid'
-                    ? 'bg-[#E3E1DC] rounded-sm shadow-[0_0_0_1px_#D1CFCA]'
+                    ? 'bg-[#E8E8E8] rounded-sm'
                     : token.type === 'error'
-                      ? 'bg-[#F3DCD6] rounded-sm shadow-[0_0_0_1px_#E5BDB5]'
+                      ? 'bg-[#FFD9D9] rounded-sm'
                       : ''
                 }
               >
@@ -68,31 +67,19 @@ export default function HighlightedTextareaCard(props: HighlightedTextareaCardPr
           onInput={(event) => props.onInput(event.currentTarget.value)}
           onScroll={handleScroll}
           spellcheck={false}
-          class="absolute inset-0 w-full h-full p-3 bg-transparent text-[#393939] caret-black resize-none border-none outline-none focus:ring-0 z-10 whitespace-pre-wrap break-words overflow-auto font-mono text-sm leading-relaxed"
+          class="absolute inset-0 w-full h-full p-1 bg-transparent text-[#111] caret-black resize-none border-none outline-none focus:ring-0 z-10 whitespace-pre-wrap break-words overflow-auto font-mono text-sm leading-relaxed"
           placeholder={props.placeholder ?? 'Enter data...'}
         />
       </div>
 
-      <div class="mt-4 pt-3 border-t border-[#F0EFEC] flex items-center justify-between gap-2 text-xs">
-        <div class="flex items-center space-x-2">
-          <Show
-            when={props.parsed.errors > 0}
-            fallback={
-              <div class="flex items-center text-[#5A7258] bg-[#E9F0E9] px-2 py-0.5 rounded-md">
-                <CheckCircle2 size={12} class="mr-1.5" />
-                <span class="font-medium font-serif">All data valid</span>
-              </div>
-            }
-          >
-            <div class="flex items-center text-[#A64635] bg-[#F9EBE9] px-2 py-0.5 rounded-md">
-              <AlertCircle size={12} class="mr-1.5" />
-              <span class="font-medium font-serif">
-                {props.parsed.errors} error{props.parsed.errors > 1 ? 's' : ''}
-              </span>
-            </div>
-          </Show>
-        </div>
-        <div class="text-[#8A847A] font-serif text-right">{props.summary}</div>
+      <div class="mt-3 pt-2 border-t border-[#F0F0F0] flex items-center justify-between gap-2 text-[10px]">
+        <Show
+          when={props.parsed.errors > 0}
+          fallback={<span class="text-[#5A9] font-mono">{props.parsed.numbers.length > 0 ? 'valid' : ''}</span>}
+        >
+          <span class="text-[#c00] font-mono">{props.parsed.errors} error{props.parsed.errors > 1 ? 's' : ''}</span>
+        </Show>
+        <span class="text-[#AAA] font-mono">{props.summary}</span>
       </div>
     </div>
   );

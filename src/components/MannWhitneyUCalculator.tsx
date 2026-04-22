@@ -19,23 +19,23 @@ export default function MannWhitneyUCalculator() {
   });
 
   return (
-    <div class="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-[1fr_384px] gap-6 items-stretch">
-      <div class="bg-white rounded-2xl shadow-sm border border-[#E6E4DD] overflow-hidden grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-[#E6E4DD]">
+    <div class="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 items-start">
+      <div class="border border-[#E0E0E0] grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-[#E0E0E0]">
         <HighlightedTextareaCard title="Sample A" value={raw1()} onInput={setRaw1} parsed={parsed1()} summary={`n=${parsed1().numbers.length}`} />
         <HighlightedTextareaCard title="Sample B" value={raw2()} onInput={setRaw2} parsed={parsed2()} summary={`n=${parsed2().numbers.length}`} />
       </div>
 
-      <div class="bg-white rounded-2xl shadow-sm border border-[#E6E4DD] p-6 flex flex-col justify-center">
+      <div class="border border-[#E0E0E0] p-4">
         {!results() ? (
-          <div class="text-center text-[#8A847A] font-serif py-12">Enter valid data in both samples.</div>
+          <span class="text-[11px] text-[#AAA] font-mono">Enter valid data in both samples.</span>
         ) : (
-          <div class="space-y-4">
+          <div>
             <StatResult label="Uₐ" value={format(results()!.uA)} showBorder />
             <StatResult label="Uᵦ" value={format(results()!.uB)} showBorder />
             <StatResult label="Mean rank A" value={format(results()!.meanRankA)} showBorder />
             <StatResult label="Mean rank B" value={format(results()!.meanRankB)} showBorder />
-            <StatResult label="z-score" value={results()!.z === null ? '-' : format(results()!.z)} showBorder />
-            <StatResult label="Two-tailed P" value={results()!.p === null ? 'Use critical-value table' : results()!.p < 0.0001 ? '< 0.0001' : format(results()!.p)} />
+            <StatResult label="z" value={results()!.z === null ? '-' : format(results()!.z)} showBorder />
+            <StatResult label="P (two-tailed)" value={results()!.p === null ? 'Use critical-value table' : results()!.p < 0.0001 ? '< 0.0001' : format(results()!.p)} />
           </div>
         )}
       </div>

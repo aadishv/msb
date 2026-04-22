@@ -22,19 +22,19 @@ export default function PearsonRegressionCalculator() {
   });
 
   return (
-    <div class="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-[1fr_384px] gap-6 items-stretch">
-      <div class="bg-white rounded-2xl shadow-sm border border-[#E6E4DD] overflow-hidden grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-[#E6E4DD]">
+    <div class="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 items-start">
+      <div class="border border-[#E0E0E0] grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-[#E0E0E0]">
         <HighlightedTextareaCard title="X values" value={xText()} onInput={setXText} parsed={x()} summary={`n=${x().numbers.length}`} />
         <HighlightedTextareaCard title="Y values" value={yText()} onInput={setYText} parsed={y()} summary={`n=${y().numbers.length}`} />
       </div>
-      <div class="bg-white rounded-2xl shadow-sm border border-[#E6E4DD] p-6 flex flex-col justify-center">
+      <div class="border border-[#E0E0E0] p-4">
         {!pearson() ? (
-          <div class="text-center text-[#8A847A] font-serif py-12">Enter paired valid values with n ≥ 3.</div>
+          <span class="text-[11px] text-[#AAA] font-mono">Enter paired values with n ≥ 3.</span>
         ) : (
-          <div class="space-y-4">
-            <StatResult label="Pearson r" value={format(pearson()!.r)} showBorder />
+          <div>
+            <StatResult label="r" value={format(pearson()!.r)} showBorder />
             <StatResult label="r²" value={format(pearson()!.rSquared)} showBorder />
-            <StatResult label="Two-tailed P" value={pearson()!.p < 0.0001 ? '< 0.0001' : format(pearson()!.p)} showBorder />
+            <StatResult label="P (two-tailed)" value={pearson()!.p < 0.0001 ? '< 0.0001' : format(pearson()!.p)} showBorder />
             <StatResult label="OLS slope" value={format(pearson()!.slope)} showBorder />
             <StatResult label="OLS intercept" value={format(pearson()!.intercept)} showBorder />
             <StatResult label="Model 2 slope" value={model2() ? format(model2()!.slope) : '-'} showBorder />

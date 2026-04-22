@@ -1,20 +1,10 @@
 import { createEffect, createMemo, createSignal, For } from 'solid-js';
 import HighlightedTextareaCard from './HighlightedTextareaCard';
 import { StatResult } from './StatResult';
-import {
-  calculateANOVA,
-  calculateRepeatedMeasuresANOVA,
-  calculateSampleSummary,
-  format,
-  parseNumberInput,
-} from '~/lib/stats';
+import { calculateANOVA, calculateRepeatedMeasuresANOVA, calculateSampleSummary, format, parseNumberInput } from '~/lib/stats';
 import { getStoredValue, setStoredValue } from '~/lib/storage';
 
-interface SampleData {
-  id: string;
-  value: string;
-}
-
+interface SampleData { id: string; value: string; }
 const makeId = () => Math.random().toString(36).slice(2, 10);
 
 export default function AnovaCalculator() {
@@ -42,24 +32,19 @@ export default function AnovaCalculator() {
   });
 
   const addSample = () => setSamples([...samples(), { id: makeId(), value: '' }]);
-  const removeSample = (id: string) => {
-    if (samples().length <= 2) return;
-    setSamples(samples().filter((sample) => sample.id !== id));
-  };
-  const updateSample = (id: string, value: string) => {
-    setSamples(samples().map((sample) => (sample.id === id ? { ...sample, value } : sample)));
-  };
+  const removeSample = (id: string) => { if (samples().length > 2) setSamples(samples().filter((s) => s.id !== id)); };
+  const updateSample = (id: string, value: string) => setSamples(samples().map((s) => (s.id === id ? { ...s, value } : s)));
 
   return (
-    <div class="max-w-6xl w-full flex flex-col gap-4">
-      <div class="flex p-1 bg-[#E6E4DD] rounded-xl border border-[#D1CFCA] w-fit">
-        <button onClick={() => setPaired(false)} class={`px-4 py-1.5 text-sm font-serif rounded-lg transition-all ${!paired() ? 'bg-white text-[#2D2D2D] shadow-sm' : 'text-[#6B6255]'}`}>Independent samples</button>
-        <button onClick={() => setPaired(true)} class={`px-4 py-1.5 text-sm font-serif rounded-lg transition-all ${paired() ? 'bg-white text-[#2D2D2D] shadow-sm' : 'text-[#6B6255]'}`}>Correlated samples</button>
+    <div class="max-w-5xl w-full flex flex-col gap-3">
+      <div class="flex border border-[#E0E0E0] w-fit">
+        <button onClick={() => setPaired(false)} class={`px-3 py-1 text-[11px] font-mono transition-colors ${!paired() ? 'bg-[#111] text-white' : 'text-[#888] hover:bg-[#F5F5F5]'}`}>Independent</button>
+        <button onClick={() => setPaired(true)} class={`px-3 py-1 text-[11px] font-mono transition-colors border-l border-[#E0E0E0] ${paired() ? 'bg-[#111] text-white' : 'text-[#888] hover:bg-[#F5F5F5]'}`}>Correlated</button>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-[1fr_384px] gap-6 items-stretch">
-        <div class="bg-white rounded-2xl shadow-sm border border-[#E6E4DD] overflow-hidden">
-          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-[#E6E4DD]">
+      <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 items-start">
+        <div class="border border-[#E0E0E0]">
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-[#E0E0E0]">
             <For each={parsed()}>
               {(sample, index) => (
                 <HighlightedTextareaCard
@@ -67,43 +52,34 @@ export default function AnovaCalculator() {
                   value={sample.value}
                   onInput={(value) => updateSample(sample.id, value)}
                   parsed={sample.parsed}
-                  summary={sample.summary ? `n=${sample.summary.n} · mean=${format(sample.summary.mean)} · sd=${format(sample.summary.sd)}` : '-'}
+                  summary={sample.summary ? `n=${sample.summary.n} · x̄=${format(sample.summary.mean)}` : '-'}
                   onRemove={() => removeSample(sample.id)}
                   canRemove={samples().length > 2}
                 />
               )}
             </For>
           </div>
-          <div class="p-4 bg-[#F9F9F8] flex justify-center border-t border-[#E6E4DD]">
-            <button onClick={addSample} class="px-4 py-2 bg-white border border-[#D1CFCA] rounded-xl text-sm font-serif text-[#2D2D2D] hover:bg-[#F5F4EF] transition-colors shadow-sm">Add sample</button>
+          <div class="p-3 border-t border-[#E0E0E0]">
+            <button onClick={addSample} class="text-[11px] font-mono text-[#888] border border-[#E0E0E0] px-3 py-1 hover:bg-[#F5F5F5] transition-colors">+ Add sample</button>
           </div>
         </div>
 
-        <div class="bg-white rounded-2xl shadow-sm border border-[#E6E4DD] p-6 flex flex-col justify-center">
+        <div class="border border-[#E0E0E0] p-4">
           {!results() ? (
-            <div class="text-center text-[#8A847A] font-serif py-12">
-              {paired() ? 'Enter valid equally-sized samples (n ≥ 2).' : 'Enter at least two valid samples with n ≥ 2.'}
-            </div>
+            <span class="text-[11px] text-[#AAA] font-mono">{paired() ? 'Enter equally-sized samples (n ≥ 2).' : 'Enter at least two valid samples.'}</span>
           ) : (
-            <div class="space-y-4">
-              <StatResult label="F-statistic" value={format(results()!.fValue)} showBorder />
-              <StatResult label="Treatment df" value={results()!.dfBetween} showBorder />
-              <StatResult label="Error df" value={results()!.dfWithin} showBorder />
-              <StatResult label="P value" value={results()!.pValue < 0.0001 ? '< 0.0001' : format(results()!.pValue)} showBorder />
+            <div>
+              <StatResult label="F" value={format(results()!.fValue)} showBorder />
+              <StatResult label="df treatment" value={results()!.dfBetween} showBorder />
+              <StatResult label="df error" value={results()!.dfWithin} showBorder />
+              <StatResult label="P" value={results()!.pValue < 0.0001 ? '< 0.0001' : format(results()!.pValue)} showBorder />
               <StatResult label="SS between" value={format(results()!.ssBetween)} showBorder />
-              <StatResult label={paired() ? 'MS error' : 'MS within'} value={format(paired() ? results()!.msError ?? null : results()!.msWithin ?? null)} />
-
+              <StatResult label={paired() ? 'MS error' : 'MS within'} value={format(paired() ? results()!.msError ?? null : results()!.msWithin ?? null)} showBorder={!!results()!.tukeyResults?.length} />
               {results()!.tukeyResults && results()!.tukeyResults!.length > 0 && (
-                <div class="pt-4 border-t border-[#E6E4DD] space-y-3">
-                  <div class="text-[10px] font-bold text-[#8A847A] uppercase tracking-[0.1em] font-sans">Tukey HSD</div>
+                <div class="mt-3 pt-2 border-t border-[#F0F0F0]">
+                  <div class="text-[9px] font-mono text-[#BBB] uppercase tracking-wider mb-2">Tukey HSD</div>
                   <For each={results()!.tukeyResults}>
-                    {(comparison) => (
-                      <StatResult
-                        label={`S${comparison.groupA + 1} vs S${comparison.groupB + 1}`}
-                        value={comparison.label05}
-                        showBorder
-                      />
-                    )}
+                    {(comparison) => <StatResult label={`S${comparison.groupA + 1} vs S${comparison.groupB + 1}`} value={comparison.label05} showBorder />}
                   </For>
                 </div>
               )}

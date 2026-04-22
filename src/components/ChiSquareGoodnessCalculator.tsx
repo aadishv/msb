@@ -28,29 +28,29 @@ export default function ChiSquareGoodnessCalculator() {
     return calculateChiSquareGoodnessOfFit(observed().numbers, { proportions: proportions().numbers });
   });
 
-  const textareaClass = 'w-full min-h-[220px] p-4 bg-white rounded-2xl shadow-sm border border-[#E6E4DD] resize-none font-mono text-sm outline-none';
+  const taClass = 'w-full min-h-[140px] p-2 border border-[#E0E0E0] resize-none font-mono text-sm outline-none focus:border-[#AAA] transition-colors';
 
   return (
-    <div class="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-[1fr_384px] gap-6 items-stretch">
-      <div class="space-y-4">
-        <textarea class={textareaClass} value={observedText()} onInput={(event) => setObservedText(event.currentTarget.value)} placeholder="Observed counts, one per line" />
-        <div class="flex p-1 bg-[#E6E4DD] rounded-xl border border-[#D1CFCA] w-fit">
-          <button onClick={() => setExpectedMode('proportions')} class={`px-4 py-1.5 text-sm font-serif rounded-lg transition-all ${expectedMode() === 'proportions' ? 'bg-white text-[#2D2D2D] shadow-sm' : 'text-[#6B6255]'}`}>Expected proportions</button>
-          <button onClick={() => setExpectedMode('expected')} class={`px-4 py-1.5 text-sm font-serif rounded-lg transition-all ${expectedMode() === 'expected' ? 'bg-white text-[#2D2D2D] shadow-sm' : 'text-[#6B6255]'}`}>Expected frequencies</button>
+    <div class="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 items-start">
+      <div class="flex flex-col gap-3">
+        <textarea class={taClass} value={observedText()} onInput={(e) => setObservedText(e.currentTarget.value)} placeholder="Observed counts, one per line" />
+        <div class="flex border border-[#E0E0E0] w-fit">
+          <button onClick={() => setExpectedMode('proportions')} class={`px-3 py-1 text-[11px] font-mono transition-colors ${expectedMode() === 'proportions' ? 'bg-[#111] text-white' : 'text-[#888] hover:bg-[#F5F5F5]'}`}>Proportions</button>
+          <button onClick={() => setExpectedMode('expected')} class={`px-3 py-1 text-[11px] font-mono transition-colors border-l border-[#E0E0E0] ${expectedMode() === 'expected' ? 'bg-[#111] text-white' : 'text-[#888] hover:bg-[#F5F5F5]'}`}>Frequencies</button>
         </div>
-        <textarea class={textareaClass} value={expectedMode() === 'expected' ? expectedText() : proportionText()} onInput={(event) => expectedMode() === 'expected' ? setExpectedText(event.currentTarget.value) : setProportionText(event.currentTarget.value)} placeholder={expectedMode() === 'expected' ? 'Expected counts' : 'Expected proportions'} />
+        <textarea class={taClass} value={expectedMode() === 'expected' ? expectedText() : proportionText()} onInput={(e) => expectedMode() === 'expected' ? setExpectedText(e.currentTarget.value) : setProportionText(e.currentTarget.value)} placeholder={expectedMode() === 'expected' ? 'Expected counts' : 'Expected proportions'} />
       </div>
 
-      <div class="bg-white rounded-2xl shadow-sm border border-[#E6E4DD] p-6 flex flex-col justify-center">
+      <div class="border border-[#E0E0E0] p-4">
         {!result() ? (
-          <div class="text-center text-[#8A847A] font-serif py-12">Enter 2–8 valid observed values and matching expected values.</div>
+          <span class="text-[11px] text-[#AAA] font-mono">Enter observed and expected values.</span>
         ) : (
-          <div class="space-y-4">
-            <StatResult label="Chi-square" value={format(result()!.chiSquare)} showBorder />
-            <StatResult label="Uncorrected χ²" value={format(result()!.uncorrectedChiSquare)} showBorder />
+          <div>
+            <StatResult label="χ²" value={format(result()!.chiSquare)} showBorder />
+            <StatResult label="χ² uncorrected" value={format(result()!.uncorrectedChiSquare)} showBorder />
             <StatResult label="df" value={result()!.df} showBorder />
-            <StatResult label="P value" value={result()!.pValue < 0.0001 ? '< 0.0001' : format(result()!.pValue)} showBorder />
-            <StatResult label="Expected total" value={format(result()!.expected.reduce((acc, value) => acc + value, 0))} />
+            <StatResult label="P" value={result()!.pValue < 0.0001 ? '< 0.0001' : format(result()!.pValue)} showBorder />
+            <StatResult label="Expected total" value={format(result()!.expected.reduce((a, v) => a + v, 0))} />
           </div>
         )}
       </div>
