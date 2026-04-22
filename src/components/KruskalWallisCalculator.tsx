@@ -17,10 +17,10 @@ export default function KruskalWallisCalculator() {
   const [samples, setSamples] = createSignal<SampleData[]>(getStoredValue('stats.kruskal.samples', fallback));
   createEffect(() => setStoredValue('stats.kruskal.samples', samples()));
 
-  const parsed = createMemo(() => samples().map((sample) => ({ ...sample, parsed: parseNumberInput(sample.value) })));
+  const parsed = createMemo(() => samples().map((s) => ({ ...s, parsed: parseNumberInput(s.value) })));
   const results = createMemo(() => {
-    if (parsed().some((sample) => sample.parsed.errors > 0)) return null;
-    return calculateKruskalWallis(parsed().map((sample) => sample.parsed.numbers).filter((group) => group.length > 0));
+    if (parsed().some((s) => s.parsed.errors > 0)) return null;
+    return calculateKruskalWallis(parsed().map((s) => s.parsed.numbers).filter((g) => g.length > 0));
   });
 
   const addSample = () => setSamples([...samples(), { id: makeId(), value: '' }]);
@@ -28,15 +28,15 @@ export default function KruskalWallisCalculator() {
   const updateSample = (id: string, value: string) => setSamples(samples().map((s) => (s.id === id ? { ...s, value } : s)));
 
   return (
-    <div class="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 items-start">
-      <div class="border border-[#E0E0E0]">
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-[#E0E0E0]">
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-12">
+      <div class="flex flex-col gap-6">
+        <div class="grid gap-8" style={`grid-template-columns: repeat(${Math.min(samples().length, 3)}, 1fr)`}>
           <For each={parsed()}>
             {(sample, index) => (
               <HighlightedTextareaCard
                 title={`Sample ${index() + 1}`}
                 value={sample.value}
-                onInput={(value) => updateSample(sample.id, value)}
+                onInput={(v) => updateSample(sample.id, v)}
                 parsed={sample.parsed}
                 summary={`n=${sample.parsed.numbers.length}`}
                 onRemove={() => removeSample(sample.id)}
@@ -45,26 +45,21 @@ export default function KruskalWallisCalculator() {
             )}
           </For>
         </div>
-        <div class="p-3 border-t border-[#E0E0E0]">
-          <button onClick={addSample} class="text-[11px] font-mono text-[#888] border border-[#E0E0E0] px-3 py-1 hover:bg-[#F5F5F5] transition-colors">+ Add sample</button>
-        </div>
+        <button onClick={addSample} class="text-sm text-left transition-colors" style="color:var(--muted)">+ add sample</button>
       </div>
-
-      <div class="border border-[#E0E0E0] p-4">
+      <div class="flex flex-col">
         {!results() ? (
-          <span class="text-[11px] text-[#AAA] font-mono">Enter 3–5 valid samples.</span>
+          <span class="text-sm" style="color:var(--muted)">Enter 3–5 valid samples.</span>
         ) : (
-          <div>
-            <StatResult label="H" value={format(results()!.h)} showBorder />
-            <StatResult label="df" value={results()!.df} showBorder />
-            <StatResult label="P" value={results()!.p < 0.0001 ? '< 0.0001' : format(results()!.p)} showBorder />
-            <div class="mt-3 pt-2 border-t border-[#F0F0F0]">
-              <div class="text-[9px] font-mono text-[#BBB] uppercase tracking-wider mb-2">Mean ranks</div>
-              <For each={results()!.meanRanks}>
-                {(value, index) => <StatResult label={`Sample ${index() + 1}`} value={format(value)} showBorder />}
-              </For>
-            </div>
-          </div>
+          <>
+            <StatResult label="H" value={format(results()!.h)} />
+            <StatResult label="df" value={results()!.df} />
+            <StatResult label="P" value={results()!.p < 0.0001 ? '< 0.0001' : format(results()!.p)} />
+            <span class="text-xs mt-4 mb-2" style="color:var(--muted)">Mean ranks</span>
+            <For each={results()!.meanRanks}>
+              {(value, index) => <StatResult label={`Sample ${index() + 1}`} value={format(value)} />}
+            </For>
+          </>
         )}
       </div>
     </div>

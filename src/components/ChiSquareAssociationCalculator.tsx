@@ -4,11 +4,11 @@ import { calculateChiSquareAssociation, format } from '~/lib/stats';
 import { getStoredValue, setStoredValue } from '~/lib/storage';
 
 function parseTable(text: string): number[][] | null {
-  const rows = text.trim().split(/\n+/).map((row) => row.trim()).filter(Boolean)
-    .map((row) => row.split(/[\s,]+/).filter(Boolean).map(Number));
-  if (rows.length === 0 || rows.some((row) => row.some((v) => !Number.isFinite(v)))) return null;
+  const rows = text.trim().split(/\n+/).map((r) => r.trim()).filter(Boolean)
+    .map((r) => r.split(/[\s,]+/).filter(Boolean).map(Number));
+  if (rows.length === 0 || rows.some((r) => r.some((v) => !Number.isFinite(v)))) return null;
   const width = rows[0]?.length ?? 0;
-  if (width < 2 || rows.some((row) => row.length !== width)) return null;
+  if (width < 2 || rows.some((r) => r.length !== width)) return null;
   return rows;
 }
 
@@ -20,25 +20,28 @@ export default function ChiSquareAssociationCalculator() {
   const result = createMemo(() => (table() ? calculateChiSquareAssociation(table()!) : null));
 
   return (
-    <div class="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 items-start">
-      <textarea
-        class="w-full min-h-[200px] p-2 border border-[#E0E0E0] resize-none font-mono text-sm outline-none focus:border-[#AAA] transition-colors"
-        value={tableText()}
-        onInput={(e) => setTableText(e.currentTarget.value)}
-        placeholder="One row per line, comma or space separated"
-      />
-
-      <div class="border border-[#E0E0E0] p-4">
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-12">
+      <div>
+        <div class="text-xs mb-2" style="color:var(--muted)">Contingency table</div>
+        <textarea
+          style="width:100%;min-height:160px;padding:0;background:transparent;resize:none;border:none;outline:none;font-family:var(--font-mono);font-size:0.875rem;line-height:1.625;color:var(--fg)"
+          value={tableText()}
+          onInput={(e) => setTableText(e.currentTarget.value)}
+          placeholder="one row per line, comma or space separated"
+          spellcheck={false}
+        />
+      </div>
+      <div class="flex flex-col">
         {!result() ? (
-          <span class="text-[11px] text-[#AAA] font-mono">Enter a 2–5 × 2–5 contingency table.</span>
+          <span class="text-sm" style="color:var(--muted)">Enter a 2–5 × 2–5 table.</span>
         ) : (
-          <div>
-            <StatResult label="χ²" value={format(result()!.chiSquare)} showBorder />
-            <StatResult label="χ² uncorrected" value={format(result()!.uncorrectedChiSquare)} showBorder />
-            <StatResult label="df" value={result()!.df} showBorder />
-            <StatResult label="P" value={result()!.pValue < 0.0001 ? '< 0.0001' : format(result()!.pValue)} showBorder />
+          <>
+            <StatResult label="χ²" value={format(result()!.chiSquare)} />
+            <StatResult label="χ² uncorrected" value={format(result()!.uncorrectedChiSquare)} />
+            <StatResult label="df" value={result()!.df} />
+            <StatResult label="P" value={result()!.pValue < 0.0001 ? '< 0.0001' : format(result()!.pValue)} />
             <StatResult label="Cramér's V" value={format(result()!.cramerV)} />
-          </div>
+          </>
         )}
       </div>
     </div>

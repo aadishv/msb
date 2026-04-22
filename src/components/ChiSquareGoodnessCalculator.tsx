@@ -28,30 +28,35 @@ export default function ChiSquareGoodnessCalculator() {
     return calculateChiSquareGoodnessOfFit(observed().numbers, { proportions: proportions().numbers });
   });
 
-  const taClass = 'w-full min-h-[140px] p-2 border border-[#E0E0E0] resize-none font-mono text-sm outline-none focus:border-[#AAA] transition-colors';
+  const taStyle = 'width:100%;min-height:120px;padding:0;background:transparent;resize:none;border:none;outline:none;font-family:var(--font-mono);font-size:0.875rem;line-height:1.625;color:var(--fg)';
 
   return (
-    <div class="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 items-start">
-      <div class="flex flex-col gap-3">
-        <textarea class={taClass} value={observedText()} onInput={(e) => setObservedText(e.currentTarget.value)} placeholder="Observed counts, one per line" />
-        <div class="flex border border-[#E0E0E0] w-fit">
-          <button onClick={() => setExpectedMode('proportions')} class={`px-3 py-1 text-[11px] font-mono transition-colors ${expectedMode() === 'proportions' ? 'bg-[#111] text-white' : 'text-[#888] hover:bg-[#F5F5F5]'}`}>Proportions</button>
-          <button onClick={() => setExpectedMode('expected')} class={`px-3 py-1 text-[11px] font-mono transition-colors border-l border-[#E0E0E0] ${expectedMode() === 'expected' ? 'bg-[#111] text-white' : 'text-[#888] hover:bg-[#F5F5F5]'}`}>Frequencies</button>
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-12">
+      <div class="flex flex-col gap-4">
+        <div>
+          <div class="text-xs mb-2" style="color:var(--muted)">Observed counts</div>
+          <textarea style={taStyle} value={observedText()} onInput={(e) => setObservedText(e.currentTarget.value)} placeholder="one per line" spellcheck={false} />
         </div>
-        <textarea class={taClass} value={expectedMode() === 'expected' ? expectedText() : proportionText()} onInput={(e) => expectedMode() === 'expected' ? setExpectedText(e.currentTarget.value) : setProportionText(e.currentTarget.value)} placeholder={expectedMode() === 'expected' ? 'Expected counts' : 'Expected proportions'} />
+        <div class="flex gap-4">
+          <button onClick={() => setExpectedMode('proportions')} class="text-sm transition-colors" style={expectedMode() === 'proportions' ? 'color:var(--nav-active)' : 'color:var(--nav-inactive)'}>Proportions</button>
+          <button onClick={() => setExpectedMode('expected')} class="text-sm transition-colors" style={expectedMode() === 'expected' ? 'color:var(--nav-active)' : 'color:var(--nav-inactive)'}>Frequencies</button>
+        </div>
+        <div>
+          <div class="text-xs mb-2" style="color:var(--muted)">{expectedMode() === 'expected' ? 'Expected counts' : 'Expected proportions'}</div>
+          <textarea style={taStyle} value={expectedMode() === 'expected' ? expectedText() : proportionText()} onInput={(e) => expectedMode() === 'expected' ? setExpectedText(e.currentTarget.value) : setProportionText(e.currentTarget.value)} placeholder="one per line" spellcheck={false} />
+        </div>
       </div>
-
-      <div class="border border-[#E0E0E0] p-4">
+      <div class="flex flex-col">
         {!result() ? (
-          <span class="text-[11px] text-[#AAA] font-mono">Enter observed and expected values.</span>
+          <span class="text-sm" style="color:var(--muted)">Enter observed and expected values.</span>
         ) : (
-          <div>
-            <StatResult label="χ²" value={format(result()!.chiSquare)} showBorder />
-            <StatResult label="χ² uncorrected" value={format(result()!.uncorrectedChiSquare)} showBorder />
-            <StatResult label="df" value={result()!.df} showBorder />
-            <StatResult label="P" value={result()!.pValue < 0.0001 ? '< 0.0001' : format(result()!.pValue)} showBorder />
+          <>
+            <StatResult label="χ²" value={format(result()!.chiSquare)} />
+            <StatResult label="χ² uncorrected" value={format(result()!.uncorrectedChiSquare)} />
+            <StatResult label="df" value={result()!.df} />
+            <StatResult label="P" value={result()!.pValue < 0.0001 ? '< 0.0001' : format(result()!.pValue)} />
             <StatResult label="Expected total" value={format(result()!.expected.reduce((a, v) => a + v, 0))} />
-          </div>
+          </>
         )}
       </div>
     </div>

@@ -17,22 +17,6 @@
 }
 
 @font-face {
-  font-family: 'AppSerif';
-  src: url('/fonts/serif-regular.woff2') format('woff2');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'AppSerif';
-  src: url('/fonts/serif-italic.woff2') format('woff2');
-  font-weight: normal;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
   font-family: 'AppMono';
   src: url('/fonts/mono-regular.woff2') format('woff2');
   font-weight: normal;
@@ -50,10 +34,41 @@
 
 @theme {
   --font-sans: 'AppSans', ui-sans-serif, system-ui, sans-serif;
-  --font-serif: 'AppSerif', ui-serif, Georgia, serif;
   --font-mono: 'AppMono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
+:root {
+  --bg: #111111;
+  --fg: #E8E8E8;
+  --muted: #555555;
+  --dim: #3A3A3A;
+  --nav-active: #E8E8E8;
+  --nav-inactive: #555555;
+  --input-highlight: #2A2A2A;
+  --input-error: #3A1A1A;
+  --error-text: #cc6666;
+  --valid-text: #55aa88;
+  --caret: white;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #FFFFFF;
+    --fg: #111111;
+    --muted: #888888;
+    --dim: #CCCCCC;
+    --nav-active: #111111;
+    --nav-inactive: #999999;
+    --input-highlight: #EBEBEB;
+    --input-error: #FFE8E8;
+    --error-text: #CC0000;
+    --valid-text: #228855;
+    --caret: black;
+  }
+}
+
 body {
+  background-color: var(--bg);
+  color: var(--fg);
   font-family: var(--font-sans);
 }

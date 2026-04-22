@@ -18,22 +18,22 @@ export default function SpearmanCalculator() {
   });
 
   return (
-    <div class="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 items-start">
-      <div class="border border-[#E0E0E0] grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-[#E0E0E0]">
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-12">
+      <div class="grid grid-cols-2 gap-8">
         <HighlightedTextareaCard title="X values" value={xText()} onInput={setXText} parsed={x()} summary={`n=${x().numbers.length}`} />
         <HighlightedTextareaCard title="Y values" value={yText()} onInput={setYText} parsed={y()} summary={`n=${y().numbers.length}`} />
       </div>
-      <div class="border border-[#E0E0E0] p-4">
+      <div class="flex flex-col">
         {!result() ? (
-          <span class="text-[11px] text-[#AAA] font-mono">Enter paired values with n ≥ 3.</span>
+          <span class="text-sm" style="color:var(--muted)">Enter paired values with n ≥ 3.</span>
         ) : (
-          <div>
-            <StatResult label="rₛ" value={format(result()!.rs)} showBorder />
-            <StatResult label="n" value={result()!.n} showBorder />
-            <StatResult label="df" value={format(result()!.df)} showBorder />
-            <StatResult label="t" value={format(result()!.t)} showBorder />
-            <StatResult label="P (two-tailed)" value={result()!.p === null ? 'Use table (n < 10)' : result()!.p < 0.0001 ? '< 0.0001' : format(result()!.p)} />
-          </div>
+          <>
+            <StatResult label="rₛ" value={format(result()!.rs)} />
+            <StatResult label="n" value={result()!.n} />
+            <StatResult label="df" value={format(result()!.df)} />
+            <StatResult label="t" value={format(result()!.t)} />
+            <StatResult label="P" value={result()!.p === null ? 'Use table (n < 10)' : result()!.p < 0.0001 ? '< 0.0001' : format(result()!.p)} />
+          </>
         )}
       </div>
     </div>
