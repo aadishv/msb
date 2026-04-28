@@ -1,4 +1,4 @@
-import { For, Show } from 'solid-js';
+import { createEffect, For, onMount, Show } from 'solid-js';
 import type { ParsedNumberInput } from '~/lib/stats';
 
 interface HighlightedTextareaCardProps {
@@ -13,15 +13,25 @@ interface HighlightedTextareaCardProps {
 }
 
 export default function HighlightedTextareaCard(props: HighlightedTextareaCardProps) {
+  let containerRef: HTMLDivElement | undefined;
   let textareaRef: HTMLTextAreaElement | undefined;
   let backdropRef: HTMLDivElement | undefined;
 
-  const handleScroll = () => {
-    if (textareaRef && backdropRef) {
-      backdropRef.scrollTop = textareaRef.scrollTop;
-      backdropRef.scrollLeft = textareaRef.scrollLeft;
-    }
+  const resizeTextarea = () => {
+    if (!textareaRef || !containerRef || !backdropRef) return;
+    textareaRef.style.height = '0px';
+    const height = `${Math.max(160, textareaRef.scrollHeight)}px`;
+    textareaRef.style.height = height;
+    containerRef.style.height = height;
+    backdropRef.style.height = height;
   };
+
+  createEffect(() => {
+    props.value;
+    queueMicrotask(resizeTextarea);
+  });
+
+  onMount(resizeTextarea);
 
   return (
     <div class="flex flex-col">
@@ -32,7 +42,7 @@ export default function HighlightedTextareaCard(props: HighlightedTextareaCardPr
         </Show>
       </div>
 
-      <div class="relative font-mono text-sm leading-relaxed min-h-[160px]">
+      <div ref={containerRef} class="relative font-mono text-sm leading-relaxed min-h-[160px]">
         <div
           ref={backdropRef}
           class="absolute inset-0 p-0 whitespace-pre-wrap break-words overflow-hidden pointer-events-none z-0 text-transparent"
@@ -51,9 +61,8 @@ export default function HighlightedTextareaCard(props: HighlightedTextareaCardPr
           ref={textareaRef}
           value={props.value}
           onInput={(e) => props.onInput(e.currentTarget.value)}
-          onScroll={handleScroll}
           spellcheck={false}
-          class="absolute inset-0 w-full h-full p-0 bg-transparent resize-none border-none outline-none z-10 whitespace-pre-wrap break-words overflow-auto font-mono text-sm leading-relaxed"
+          class="absolute inset-0 w-full p-0 bg-transparent resize-none border-none outline-none z-10 whitespace-pre-wrap break-words overflow-hidden font-mono text-sm leading-relaxed"
           style="color: var(--fg); caret-color: var(--caret)"
           placeholder={props.placeholder ?? 'Enter data...'}
         />
